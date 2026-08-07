@@ -1,0 +1,341 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum AccountType {
+  CASH
+  BANK
+  CREDIT_CARD
+  SAVINGS
+  INVESTMENT
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  KGS
+  RUB
+  KZT
+}
+
+enum BillFrequency {
+  ONCE
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum BillStatus {
+  UNPAID
+  PAID
+}
+
+enum NotificationType {
+  BUDGET_EXCEEDED
+  UPCOMING_BILL
+  SAVINGS_MILESTONE
+  LOW_BALANCE
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Users & Auth
+// ─────────────────────────────────────────────────────────────────────────
+
+model User {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  avatarUrl            String?
+  emailVerified        Boolean   @default(false)
+  emailVerifyToken     String?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  accounts      Account[]
+  transactions  Transaction[]
+  categories    Category[]
+  budgets       Budget[]
+  savingsGoals  SavingsGoal[]
+  bills         Bill[]
+  notifications Notification[]
+  attachments   Attachment[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  settings      Settings?
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Settings {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                  Theme    @default(SYSTEM)
+  currency               Currency @default(USD)
+  language               String   @default("en")
+  timezone               String   @default("UTC")
+  notifyBudgetExceeded   Boolean  @default(true)
+  notifyUpcomingBills    Boolean  @default(true)
+  notifySavingsMilestone Boolean  @default(true)
+  notifyLowBalance       Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Accounts
+// ─────────────────────────────────────────────────────────────────────────
+
+model Account {
+  id         String      @id @default(uuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  type       AccountType
+  balance    Decimal     @default(0) @db.Decimal(14, 2)
+  currency   Currency    @default(USD)
+  icon       String      @default("wallet")
+  color      String      @default("#4F46E5")
+  isArchived Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  transactions Transaction[] @relation("AccountTransactions")
+  transfersOut Transaction[] @relation("TransferFromAccount")
+  transfersIn  Transaction[] @relation("TransferToAccount")
+  bills        Bill[]
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Categories
+// ─────────────────────────────────────────────────────────────────────────
+
+model Category {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      TransactionType
+  icon      String          @default("tag")
+  color     String          @default("#4F46E5")
+  isDefault Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  transactions Transaction[]
+  budgets      Budget[]
+  bills        Bill[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Transactions
+// ─────────────────────────────────────────────────────────────────────────
+
+model Transaction {
+  id     String          @id @default(uuid())
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title  String
+  amount Decimal         @db.Decimal(14, 2)
+  type   TransactionType
+  date   DateTime
+  notes  String?
+
+  accountId String
+  account   Account @relation("AccountTransactions", fields: [accountId], references: [id], onDelete: Cascade)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // populated only for type = TRANSFER
+  transferFromAccountId String?
+  transferFromAccount   Account? @relation("TransferFromAccount", fields: [transferFromAccountId], references: [id])
+  transferToAccountId   String?
+  transferToAccount     Account? @relation("TransferToAccount", fields: [transferToAccountId], references: [id])
+
+  isRecurring   Boolean @default(false)
+  recurringRule String?
+
+  attachments Attachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([accountId])
+  @@index([categoryId])
+  @@map("transactions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Budgets
+// ─────────────────────────────────────────────────────────────────────────
+
+model Budget {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  amount     Decimal  @db.Decimal(14, 2)
+  month      Int // 1-12
+  year       Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, categoryId, month, year])
+  @@index([userId, year, month])
+  @@map("budgets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Savings Goals
+// ─────────────────────────────────────────────────────────────────────────
+
+model SavingsGoal {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  icon          String    @default("piggy-bank")
+  color         String    @default("#22C55E")
+  targetAmount  Decimal   @db.Decimal(14, 2)
+  currentAmount Decimal   @default(0) @db.Decimal(14, 2)
+  deadline      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("savings_goals")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Bills
+// ─────────────────────────────────────────────────────────────────────────
+
+model Bill {
+  id         String          @id @default(uuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  amount     Decimal         @db.Decimal(14, 2)
+  type       TransactionType @default(EXPENSE)
+  frequency  BillFrequency
+  dueDate    DateTime
+  status     BillStatus      @default(UNPAID)
+  categoryId String?
+  category   Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  accountId  String?
+  account    Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([userId, dueDate])
+  @@map("bills")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Notifications
+// ─────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Attachments
+// ─────────────────────────────────────────────────────────────────────────
+
+model Attachment {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  fileName      String
+  fileUrl       String
+  mimeType      String
+  sizeBytes     Int
+  createdAt     DateTime     @default(now())
+
+  @@index([userId])
+  @@index([transactionId])
+  @@map("attachments")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Audit Log
+// ─────────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}

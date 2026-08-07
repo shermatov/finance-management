@@ -1,0 +1,27 @@
+import { z } from "zod";
+
+const accountTypes = ["CASH", "BANK", "CREDIT_CARD", "SAVINGS", "INVESTMENT"] as const;
+const currencies = ["USD", "EUR", "GBP", "KGS", "RUB", "KZT"] as const;
+
+export const createAccountSchema = z.object({
+  name: z.string().min(1).max(100),
+  type: z.enum(accountTypes),
+  balance: z.number().finite().default(0),
+  currency: z.enum(currencies).default("USD"),
+  icon: z.string().min(1).max(50).default("wallet"),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#4F46E5"),
+});
+
+export const updateAccountSchema = createAccountSchema.partial().extend({
+  isArchived: z.boolean().optional(),
+});
+
+export const idParamSchema = z.object({ id: z.string().uuid() });
+
+export const transferSchema = z.object({
+  fromAccountId: z.string().uuid(),
+  toAccountId: z.string().uuid(),
+  amount: z.number().positive(),
+  date: z.coerce.date().default(() => new Date()),
+  notes: z.string().max(500).optional(),
+});
