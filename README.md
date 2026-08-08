@@ -6,7 +6,7 @@ bills, analytics and AI insights, built with React 19 + Express + PostgreSQL/Pri
 ## Status: Phase 1 (foundation)
 
 This phase ships:
-- Monorepo scaffold (`frontend/`, `backend/`) + Docker Compose
+- Monorepo scaffold (`frontend/`, `backend/`)
 - Full Prisma schema covering the entire data model (accounts, transactions, categories,
   budgets, savings goals, bills, notifications, settings, attachments, refresh tokens)
 - JWT auth (register / login / refresh / logout) with bcrypt password hashing, helmet,
@@ -25,22 +25,10 @@ insights, OCR, bank-statement import, PWA/offline, drag-and-drop widgets, multi-
 conversion, CSRF, audit logs) is intentionally deferred to later phases so this foundation
 can be reviewed first.
 
-## Quick start (Docker)
+## Quick start
 
 ```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-docker compose up --build
-```
-
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:4000
-- Postgres: localhost:5432
-
-## Quick start (local, no Docker)
-
-```bash
-# 1. Postgres running locally, then:
+# 1. Postgres running locally (e.g. `brew services start postgresql@17`), then:
 cd backend
 cp .env.example .env      # edit DATABASE_URL if needed
 npm install
@@ -59,7 +47,6 @@ npm run dev
 ```
 backend/    Express + TypeScript API, Prisma schema & migrations
 frontend/   React 19 + Vite + TypeScript SPA
-docker-compose.yml
 ```
 
 ## Next phases

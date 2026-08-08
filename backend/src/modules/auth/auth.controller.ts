@@ -8,10 +8,15 @@ const REFRESH_COOKIE = "refreshToken";
 const REFRESH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 function setRefreshCookie(res: Response, token: string) {
+  const isProd = env.NODE_ENV === "production";
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "lax",
+    // Frontend (Vercel) and API (Railway/etc.) are on different domains in production,
+    // so the refresh cookie is cross-site — that requires SameSite=None, which browsers
+    // only honor when Secure is also set. Locally the dev proxy keeps everything same-origin,
+    // where Lax is both sufficient and avoids needing HTTPS on localhost.
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: REFRESH_COOKIE_MAX_AGE_MS,
     path: "/api/auth",
   });

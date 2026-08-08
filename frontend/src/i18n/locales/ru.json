@@ -310,6 +310,8 @@
       "namePlaceholder": "напр. Финансовая подушка",
       "targetAmount": "Целевая сумма",
       "startingAmount": "Начальная сумма",
+      "currentAmountLabel": "Собрано на данный момент",
+      "currentAmountHint": "Ошиблись? Просто введите здесь правильную сумму.",
       "deadline": "Срок ({{optional}})",
       "color": "Цвет",
       "create": "Создать цель"

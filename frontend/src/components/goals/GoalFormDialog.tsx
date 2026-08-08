@@ -110,9 +110,15 @@ export function GoalFormDialog({
               {errors.targetAmount && <p className="text-xs text-danger">{errors.targetAmount.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="currentAmount">{t("goals.form.startingAmount")}</Label>
+              <Label htmlFor="currentAmount">
+                {isEditing ? t("goals.form.currentAmountLabel") : t("goals.form.startingAmount")}
+              </Label>
               <Input id="currentAmount" type="number" step="0.01" {...register("currentAmount")} />
-              {errors.currentAmount && <p className="text-xs text-danger">{errors.currentAmount.message}</p>}
+              {errors.currentAmount ? (
+                <p className="text-xs text-danger">{errors.currentAmount.message}</p>
+              ) : isEditing ? (
+                <p className="text-xs text-muted-foreground">{t("goals.form.currentAmountHint")}</p>
+              ) : null}
             </div>
           </div>
 

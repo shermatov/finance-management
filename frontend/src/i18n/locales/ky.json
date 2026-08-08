@@ -308,6 +308,8 @@
       "namePlaceholder": "мис. Камдык фонд",
       "targetAmount": "Максаттуу сумма",
       "startingAmount": "Баштапкы сумма",
+      "currentAmountLabel": "Азырга чейин топтолгон сумма",
+      "currentAmountHint": "Ката кетирдиңизби? Бул жерге туура суманы жазыңыз.",
       "deadline": "Мөөнөтү ({{optional}})",
       "color": "Түс",
       "create": "Максат түзүү"

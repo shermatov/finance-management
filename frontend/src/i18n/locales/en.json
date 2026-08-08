@@ -308,6 +308,8 @@
       "namePlaceholder": "e.g. Emergency fund",
       "targetAmount": "Target amount",
       "startingAmount": "Starting amount",
+      "currentAmountLabel": "Amount collected so far",
+      "currentAmountHint": "Made a mistake? Just type the correct total here.",
       "deadline": "Deadline ({{optional}})",
       "color": "Color",
       "create": "Create goal"
