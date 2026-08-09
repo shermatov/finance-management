@@ -3,6 +3,7 @@ import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { hashPassword, comparePassword } from "../../utils/password.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../../lib/email.js";
 
 const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -61,8 +62,7 @@ export async function register(input: {
     },
   });
 
-  // TODO(phase 2): send a real verification email via an SMTP/email provider.
-  console.info(`[dev] Email verification link for ${user.email}: /verify-email?token=${emailVerifyToken}`);
+  await sendVerificationEmail(user.email, user.firstName, emailVerifyToken);
 
   const tokens = await issueTokenPair(user.id, user.email);
   return { user: toPublicUser(user), ...tokens };
@@ -117,8 +117,7 @@ export async function forgotPassword(email: string) {
     data: { passwordResetToken: token, passwordResetExpires: new Date(Date.now() + 60 * 60 * 1000) },
   });
 
-  // TODO(phase 2): send a real password-reset email via an SMTP/email provider.
-  console.info(`[dev] Password reset link for ${user.email}: /reset-password?token=${token}`);
+  await sendPasswordResetEmail(user.email, user.firstName, token);
 }
 
 export async function resetPassword(token: string, newPassword: string) {

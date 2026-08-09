@@ -4,6 +4,7 @@ import { ProtectedRoute, PublicOnlyRoute } from "@/routes/ProtectedRoute";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
 import DashboardPage from "@/pages/DashboardPage";
 import TransactionsPage from "@/pages/TransactionsPage";
 import AccountsPage from "@/pages/AccountsPage";
@@ -39,6 +40,8 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
+
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

@@ -101,6 +101,14 @@
       "checkInbox": "Check your inbox for a reset link.",
       "sendResetLink": "Send reset link",
       "backToSignIn": "Back to sign in"
+    },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "verifying": "Verifying your email address...",
+      "success": "Your email has been verified.",
+      "genericError": "This verification link is invalid or has expired.",
+      "missingToken": "No verification token was provided.",
+      "continue": "Continue to app"
     }
   },
   "dashboard": {
@@ -274,9 +282,18 @@
     "created": "Budget created",
     "updated": "Budget updated",
     "months": {
-      "1": "January", "2": "February", "3": "March", "4": "April",
-      "5": "May", "6": "June", "7": "July", "8": "August",
-      "9": "September", "10": "October", "11": "November", "12": "December"
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
     },
     "form": {
       "category": "Category",

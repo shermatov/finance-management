@@ -10,6 +10,8 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(10),
   JWT_ACCESS_TTL: z.string().default("15m"),
   JWT_REFRESH_TTL: z.string().default("30d"),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default("Personal Finance <onboarding@resend.dev>"),
 });
 
 const parsed = envSchema.safeParse(process.env);
