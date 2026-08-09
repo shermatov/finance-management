@@ -30,7 +30,7 @@ app.use(cookieParser());
 app.use(apiRateLimiter);
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", deploySyncCheck: "ok" });
+  res.json({ status: "ok" });
 });
 
 app.use("/api/auth", authRouter);
