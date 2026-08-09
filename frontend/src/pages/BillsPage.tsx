@@ -85,27 +85,33 @@ export default function BillsPage() {
     return (
       <Card key={bill.id} className={cn("border-border/60 shadow-soft", isPaid && "opacity-60")}>
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-          <div className="flex flex-1 items-center gap-3">
+          <div className="flex flex-1 items-start gap-2 sm:items-center sm:gap-3">
             <div
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:mt-0 sm:h-10 sm:w-10",
                 bill.type === "INCOME" ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
               )}
             >
-              {bill.type === "INCOME" ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownLeft className="h-5 w-5" />}
+              {bill.type === "INCOME" ? (
+                <ArrowUpRight className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
+              ) : (
+                <ArrowDownLeft className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
+              )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{bill.name}</p>
+              <p className="text-sm font-medium leading-snug">{bill.name}</p>
               <p
                 className={cn(
                   "flex items-center gap-1 text-xs",
                   isOverdue ? "text-danger" : "text-muted-foreground"
                 )}
               >
-                {isOverdue && <AlertTriangle className="h-3 w-3" />}
-                {isPaid
-                  ? t("bills.paid")
-                  : `${frequencyLabel} · ${isOverdue ? t("bills.overdue") : t("bills.due")} ${formatDate(bill.dueDate)}`}
+                {isOverdue && <AlertTriangle className="h-3 w-3 shrink-0" />}
+                <span className="truncate">
+                  {isPaid
+                    ? t("bills.paid")
+                    : `${frequencyLabel} · ${isOverdue ? t("bills.overdue") : t("bills.due")} ${formatDate(bill.dueDate)}`}
+                </span>
               </p>
             </div>
             <p className={cn("shrink-0 text-sm font-semibold tabular-nums", bill.type === "INCOME" ? "text-success" : "text-foreground")}>
@@ -113,22 +119,23 @@ export default function BillsPage() {
               {formatNumber(bill.amount)}
             </p>
           </div>
-          <div className="flex shrink-0 items-center justify-end gap-1">
+          <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1">
             {!isPaid && (
               <Button
                 variant="ghost"
                 size="icon"
+                className="h-7 w-7 sm:h-10 sm:w-10"
                 title={isOnce ? t("bills.markAsPaid") ?? undefined : t("bills.markCycleDone") ?? undefined}
                 onClick={() => setPayingBill(bill)}
               >
-                <CheckCircle2 className="h-4 w-4 text-success" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-success sm:h-4 sm:w-4" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => openEdit(bill)}>
-              <Pencil className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-10 sm:w-10" onClick={() => openEdit(bill)}>
+              <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setDeletingBill(bill)}>
-              <Trash2 className="h-4 w-4 text-danger" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-10 sm:w-10" onClick={() => setDeletingBill(bill)}>
+              <Trash2 className="h-3.5 w-3.5 text-danger sm:h-4 sm:w-4" />
             </Button>
           </div>
         </CardContent>

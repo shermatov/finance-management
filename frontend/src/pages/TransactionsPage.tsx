@@ -86,10 +86,10 @@ export default function TransactionsPage() {
             <>
               <ul className="divide-y divide-border/60 sm:hidden">
                 {data.items.map((tx) => (
-                  <li key={tx.id} className="flex items-center gap-3 py-3">
+                  <li key={tx.id} className="flex items-start gap-2 py-3">
                     <div
                       className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                        "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
                         tx.type === "INCOME"
                           ? "bg-success/10 text-success"
                           : tx.type === "TRANSFER"
@@ -98,40 +98,43 @@ export default function TransactionsPage() {
                       )}
                     >
                       {tx.type === "INCOME" ? (
-                        <ArrowUpRight className="h-4 w-4" />
+                        <ArrowUpRight className="h-3 w-3" />
                       ) : tx.type === "TRANSFER" ? (
-                        <ArrowLeftRight className="h-4 w-4" />
+                        <ArrowLeftRight className="h-3 w-3" />
                       ) : (
-                        <ArrowDownLeft className="h-4 w-4" />
+                        <ArrowDownLeft className="h-3 w-3" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{tx.title}</p>
+                      <p className="text-sm font-medium leading-snug">{tx.title}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {tx.category?.name ?? t("common.uncategorized")} · {tx.account.name} · {formatDate(tx.date)}
                       </p>
                     </div>
-                    <p
-                      className={cn(
-                        "shrink-0 text-sm font-semibold tabular-nums",
-                        tx.type === "INCOME" ? "text-success" : tx.type === "EXPENSE" ? "text-foreground" : "text-primary"
-                      )}
-                    >
-                      {tx.type === "INCOME" ? "+" : tx.type === "EXPENSE" ? "-" : ""}
-                      {formatCurrency(tx.amount, tx.account.currency)}
-                    </p>
-                    <div className="flex shrink-0 gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={tx.type === "TRANSFER"}
-                        onClick={() => openEdit(tx)}
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <p
+                        className={cn(
+                          "text-sm font-semibold tabular-nums",
+                          tx.type === "INCOME" ? "text-success" : tx.type === "EXPENSE" ? "text-foreground" : "text-primary"
+                        )}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeletingTx(tx)}>
-                        <Trash2 className="h-4 w-4 text-danger" />
-                      </Button>
+                        {tx.type === "INCOME" ? "+" : tx.type === "EXPENSE" ? "-" : ""}
+                        {formatCurrency(tx.amount, tx.account.currency)}
+                      </p>
+                      <div className="flex gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          disabled={tx.type === "TRANSFER"}
+                          onClick={() => openEdit(tx)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeletingTx(tx)}>
+                          <Trash2 className="h-3.5 w-3.5 text-danger" />
+                        </Button>
+                      </div>
                     </div>
                   </li>
                 ))}
