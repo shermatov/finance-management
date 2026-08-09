@@ -109,6 +109,16 @@
       "genericError": "This verification link is invalid or has expired.",
       "missingToken": "No verification token was provided.",
       "continue": "Continue to app"
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "subtitle": "Choose a new password for your account.",
+      "newPassword": "New password",
+      "submit": "Reset password",
+      "success": "Your password has been reset.",
+      "genericError": "This reset link is invalid or has expired.",
+      "missingToken": "No reset token was provided.",
+      "backToSignIn": "Back to sign in"
     }
   },
   "dashboard": {
