@@ -84,34 +84,36 @@ export default function BillsPage() {
       : t(`bills.${bill.frequency.toLowerCase()}` as "bills.weekly" | "bills.monthly" | "bills.yearly");
     return (
       <Card key={bill.id} className={cn("border-border/60 shadow-soft", isPaid && "opacity-60")}>
-        <CardContent className="flex items-center gap-3 p-4">
-          <div
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-              bill.type === "INCOME" ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
-            )}
-          >
-            {bill.type === "INCOME" ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownLeft className="h-5 w-5" />}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{bill.name}</p>
-            <p
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-center gap-3">
+            <div
               className={cn(
-                "flex items-center gap-1 text-xs",
-                isOverdue ? "text-danger" : "text-muted-foreground"
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                bill.type === "INCOME" ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
               )}
             >
-              {isOverdue && <AlertTriangle className="h-3 w-3" />}
-              {isPaid
-                ? t("bills.paid")
-                : `${frequencyLabel} · ${isOverdue ? t("bills.overdue") : t("bills.due")} ${formatDate(bill.dueDate)}`}
+              {bill.type === "INCOME" ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownLeft className="h-5 w-5" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{bill.name}</p>
+              <p
+                className={cn(
+                  "flex items-center gap-1 text-xs",
+                  isOverdue ? "text-danger" : "text-muted-foreground"
+                )}
+              >
+                {isOverdue && <AlertTriangle className="h-3 w-3" />}
+                {isPaid
+                  ? t("bills.paid")
+                  : `${frequencyLabel} · ${isOverdue ? t("bills.overdue") : t("bills.due")} ${formatDate(bill.dueDate)}`}
+              </p>
+            </div>
+            <p className={cn("shrink-0 text-sm font-semibold tabular-nums", bill.type === "INCOME" ? "text-success" : "text-foreground")}>
+              {bill.type === "INCOME" ? "+" : "-"}
+              {formatNumber(bill.amount)}
             </p>
           </div>
-          <p className={cn("shrink-0 text-sm font-semibold tabular-nums", bill.type === "INCOME" ? "text-success" : "text-foreground")}>
-            {bill.type === "INCOME" ? "+" : "-"}
-            {formatNumber(bill.amount)}
-          </p>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center justify-end gap-1">
             {!isPaid && (
               <Button
                 variant="ghost"

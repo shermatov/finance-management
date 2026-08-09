@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { PieChart as PieIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +14,15 @@ const MAX_SLOTS = 8;
 export function CategoryPieChart({ data }: { data: CategoryBreakdownItem[] }) {
   const { t } = useTranslation();
   const { resolvedTheme } = useTheme();
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   if (data.length === 0) {
     return (
@@ -45,18 +55,19 @@ export function CategoryPieChart({ data }: { data: CategoryBreakdownItem[] }) {
         <CardTitle className="text-base">{t("dashboard.categoryPie.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-72 w-full">
+        <div className={isMobile ? "h-96 w-full" : "h-72 w-full"}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
                 dataKey="amount"
                 nameKey="name"
-                innerRadius={60}
-                outerRadius={90}
+                innerRadius={isMobile ? 50 : 60}
+                outerRadius={isMobile ? 75 : 90}
                 paddingAngle={2}
                 strokeWidth={2}
                 stroke="hsl(var(--card))"
+                cy={isMobile ? "35%" : "50%"}
                 label={({ percent }) => (percent >= 0.08 ? `${Math.round(percent * 100)}%` : "")}
                 labelLine={false}
               >
@@ -70,10 +81,14 @@ export function CategoryPieChart({ data }: { data: CategoryBreakdownItem[] }) {
               />
               <Legend
                 iconType="circle"
-                layout="vertical"
-                align="right"
-                verticalAlign="middle"
-                wrapperStyle={{ fontSize: 12, lineHeight: "20px" }}
+                layout={isMobile ? "horizontal" : "vertical"}
+                align={isMobile ? "center" : "right"}
+                verticalAlign={isMobile ? "bottom" : "middle"}
+                wrapperStyle={
+                  isMobile
+                    ? { fontSize: 12, lineHeight: "20px", paddingTop: 16 }
+                    : { fontSize: 12, lineHeight: "20px" }
+                }
               />
             </PieChart>
           </ResponsiveContainer>

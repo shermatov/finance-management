@@ -84,7 +84,60 @@ export default function TransactionsPage() {
             />
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <ul className="divide-y divide-border/60 sm:hidden">
+                {data.items.map((tx) => (
+                  <li key={tx.id} className="flex items-center gap-3 py-3">
+                    <div
+                      className={cn(
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                        tx.type === "INCOME"
+                          ? "bg-success/10 text-success"
+                          : tx.type === "TRANSFER"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-danger/10 text-danger"
+                      )}
+                    >
+                      {tx.type === "INCOME" ? (
+                        <ArrowUpRight className="h-4 w-4" />
+                      ) : tx.type === "TRANSFER" ? (
+                        <ArrowLeftRight className="h-4 w-4" />
+                      ) : (
+                        <ArrowDownLeft className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{tx.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {tx.category?.name ?? t("common.uncategorized")} · {tx.account.name} · {formatDate(tx.date)}
+                      </p>
+                    </div>
+                    <p
+                      className={cn(
+                        "shrink-0 text-sm font-semibold tabular-nums",
+                        tx.type === "INCOME" ? "text-success" : tx.type === "EXPENSE" ? "text-foreground" : "text-primary"
+                      )}
+                    >
+                      {tx.type === "INCOME" ? "+" : tx.type === "EXPENSE" ? "-" : ""}
+                      {formatCurrency(tx.amount, tx.account.currency)}
+                    </p>
+                    <div className="flex shrink-0 gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={tx.type === "TRANSFER"}
+                        onClick={() => openEdit(tx)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeletingTx(tx)}>
+                        <Trash2 className="h-4 w-4 text-danger" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="hidden overflow-x-auto sm:block">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/60 text-left text-xs text-muted-foreground">
