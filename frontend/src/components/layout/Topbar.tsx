@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Menu, Search, Sun, Moon, Laptop, Languages, LogOut, User as UserIcon } from "lucide-react";
@@ -37,11 +37,21 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
   const current = navItems.find((item) => item.path === location.pathname);
 
-  const runSearch = () => {
+  const runSearch = (query: string) => {
+    if (!query) return;
+    const onTransactions = location.pathname === "/transactions";
+    navigate(`/transactions?search=${encodeURIComponent(query)}`, { replace: onTransactions });
+  };
+
+  // Live search as you type (debounced) so a second/third search reacts without
+  // needing Enter — pressing Enter (below) still fires immediately for responsiveness.
+  useEffect(() => {
     const query = searchQuery.trim();
     if (!query) return;
-    navigate(`/transactions?search=${encodeURIComponent(query)}`);
-  };
+    const timeout = setTimeout(() => runSearch(query), 400);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const changeLanguage = (lang: SupportedLanguage) => {
     i18n.changeLanguage(lang);
@@ -64,7 +74,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             className="pl-9"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && runSearch()}
+            onKeyDown={(e) => e.key === "Enter" && runSearch(searchQuery.trim())}
           />
         </div>
 
