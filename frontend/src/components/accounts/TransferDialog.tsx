@@ -43,9 +43,15 @@ export function TransferDialog({
     });
   type FormValues = z.infer<typeof schema>;
 
-  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+
+  const fromAccountId = watch("fromAccountId");
+  const toAccountId = watch("toAccountId");
+  const fromAccount = accounts.find((a) => a.id === fromAccountId);
+  const toAccount = accounts.find((a) => a.id === toAccountId);
+  const currenciesDiffer = !!fromAccount && !!toAccount && fromAccount.currency !== toAccount.currency;
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -113,9 +119,22 @@ export function TransferDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="amount">{t("accounts.transferDialog.amount")}</Label>
+            <Label htmlFor="amount">
+              {fromAccount
+                ? t("accounts.transferDialog.amountInCurrency", { currency: fromAccount.currency })
+                : t("accounts.transferDialog.amount")}
+            </Label>
             <Input id="amount" type="number" step="0.01" {...register("amount")} />
-            {errors.amount && <p className="text-xs text-danger">{errors.amount.message}</p>}
+            {errors.amount ? (
+              <p className="text-xs text-danger">{errors.amount.message}</p>
+            ) : currenciesDiffer ? (
+              <p className="text-xs text-muted-foreground">
+                {t("accounts.transferDialog.currencyConvertHint", {
+                  from: fromAccount!.currency,
+                  to: toAccount!.currency,
+                })}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-1.5">

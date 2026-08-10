@@ -247,6 +247,8 @@
       "to": "To",
       "selectAccount": "Select account",
       "amount": "Amount",
+      "amountInCurrency": "Amount (in {{currency}})",
+      "currencyConvertHint": "Converted from {{from}} to {{to}} automatically at the current exchange rate.",
       "notes": "Notes ({{optional}})",
       "transferring": "Transferring…",
       "transfer": "Transfer",

@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { convert } from "../../lib/exchangeRates.js";
 
 type Frequency = "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
 
@@ -98,7 +99,10 @@ export async function deleteBill(userId: string, id: string) {
  * Recurring bills advance to their next cycle and reopen as UNPAID; one-off bills just stay PAID for good.
  */
 export async function markBillPaid(userId: string, id: string) {
-  const bill = await prisma.bill.findFirst({ where: { id, userId } });
+  const bill = await prisma.bill.findFirst({
+    where: { id, userId },
+    include: { account: true, debtAccount: true },
+  });
   if (!bill) throw ApiError.notFound("Bill not found");
 
   return prisma.$transaction(async (tx) => {
@@ -117,13 +121,14 @@ export async function markBillPaid(userId: string, id: string) {
           notes: `Debt payoff: ${bill.name}`,
         },
       });
+      const convertedAmount = await convert(Number(bill.amount), bill.account!.currency, bill.debtAccount!.currency);
       await tx.account.update({
         where: { id: bill.accountId },
         data: { balance: { decrement: Number(bill.amount) } },
       });
       await tx.account.update({
         where: { id: bill.debtAccountId },
-        data: { balance: { increment: Number(bill.amount) } },
+        data: { balance: { increment: convertedAmount } },
       });
     } else if (bill.accountId) {
       await tx.transaction.create({

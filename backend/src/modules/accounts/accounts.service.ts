@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { convert } from "../../lib/exchangeRates.js";
 
 export async function listAccounts(userId: string) {
   return prisma.account.findMany({
@@ -58,6 +59,12 @@ export async function transferBetweenAccounts(
     getAccount(userId, input.toAccountId),
   ]);
 
+  // `amount` is denominated in the source account's currency (matches how it's displayed
+  // elsewhere, since the transaction's own `accountId` is the source). The destination
+  // gets the converted amount, so a transfer between different-currency accounts doesn't
+  // just copy the raw number over.
+  const convertedAmount = await convert(input.amount, fromAccount.currency, toAccount.currency);
+
   return prisma.$transaction(async (tx) => {
     await tx.account.update({
       where: { id: fromAccount.id },
@@ -65,7 +72,7 @@ export async function transferBetweenAccounts(
     });
     await tx.account.update({
       where: { id: toAccount.id },
-      data: { balance: { increment: input.amount } },
+      data: { balance: { increment: convertedAmount } },
     });
 
     return tx.transaction.create({

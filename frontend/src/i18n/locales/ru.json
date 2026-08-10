@@ -249,6 +249,8 @@
       "to": "Куда",
       "selectAccount": "Выберите счёт",
       "amount": "Сумма",
+      "amountInCurrency": "Сумма (в {{currency}})",
+      "currencyConvertHint": "Будет автоматически конвертировано из {{from}} в {{to}} по текущему курсу.",
       "notes": "Заметки ({{optional}})",
       "transferring": "Перевод…",
       "transfer": "Перевести",

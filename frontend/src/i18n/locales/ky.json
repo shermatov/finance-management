@@ -247,6 +247,8 @@
       "to": "Кайда",
       "selectAccount": "Эсепти тандаңыз",
       "amount": "Сумма",
+      "amountInCurrency": "Сумма ({{currency}} менен)",
+      "currencyConvertHint": "Учурдагы курс боюнча {{from}} валютасынан {{to}} валютасына автоматтык түрдө айырбашталат.",
       "notes": "Эскертүү ({{optional}})",
       "transferring": "Которулууда…",
       "transfer": "Которуу",
