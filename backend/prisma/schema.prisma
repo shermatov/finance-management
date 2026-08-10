@@ -146,6 +146,7 @@ model Account {
   transfersOut Transaction[] @relation("TransferFromAccount")
   transfersIn  Transaction[] @relation("TransferToAccount")
   bills        Bill[]
+  debtBills    Bill[]        @relation("BillDebtAccount")
 
   @@index([userId])
   @@map("accounts")
@@ -277,6 +278,10 @@ model Bill {
   category   Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   accountId  String?
   account    Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  // When set, marking this bill paid records a transfer from `account` into `debtAccount`
+  // instead of a plain expense — for tracking a debt/liability getting paid down.
+  debtAccountId String?
+  debtAccount   Account?     @relation("BillDebtAccount", fields: [debtAccountId], references: [id], onDelete: SetNull)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 

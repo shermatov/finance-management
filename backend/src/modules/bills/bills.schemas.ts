@@ -8,6 +8,7 @@ export const createBillSchema = z.object({
   dueDate: z.coerce.date().optional().nullable(),
   categoryId: z.string().uuid().optional(),
   accountId: z.string().uuid().optional(),
+  debtAccountId: z.string().uuid().optional().nullable(),
 });
 
 export const updateBillSchema = z.object({
@@ -18,6 +19,7 @@ export const updateBillSchema = z.object({
   dueDate: z.coerce.date().optional().nullable(),
   categoryId: z.string().uuid().optional(),
   accountId: z.string().uuid().optional(),
+  debtAccountId: z.string().uuid().optional().nullable(),
 });
 
 export const idParamSchema = z.object({ id: z.string().uuid() });

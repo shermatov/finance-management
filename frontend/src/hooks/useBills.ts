@@ -17,6 +17,7 @@ export interface BillInput {
   dueDate?: string | null;
   categoryId?: string;
   accountId?: string;
+  debtAccountId?: string | null;
 }
 
 function invalidateBillQueries(queryClient: ReturnType<typeof useQueryClient>) {

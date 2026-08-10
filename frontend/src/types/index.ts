@@ -80,6 +80,7 @@ export interface Bill {
   status: "UNPAID" | "PAID";
   categoryId: string | null;
   accountId: string | null;
+  debtAccountId: string | null;
 }
 
 export interface SavingsGoal {

@@ -66,9 +66,11 @@ export async function createBill(
     dueDate?: Date | null;
     categoryId?: string;
     accountId?: string;
+    debtAccountId?: string | null;
   }
 ) {
   await assertOwnedAccount(userId, input.accountId);
+  await assertOwnedAccount(userId, input.debtAccountId ?? undefined);
   await assertOwnedCategory(userId, input.categoryId);
   return prisma.bill.create({ data: { userId, ...input } });
 }
@@ -77,6 +79,7 @@ export async function updateBill(userId: string, id: string, input: Record<strin
   const bill = await prisma.bill.findFirst({ where: { id, userId } });
   if (!bill) throw ApiError.notFound("Bill not found");
   if (input.accountId) await assertOwnedAccount(userId, input.accountId as string);
+  if (input.debtAccountId) await assertOwnedAccount(userId, input.debtAccountId as string);
   if (input.categoryId) await assertOwnedCategory(userId, input.categoryId as string);
   return prisma.bill.update({ where: { id }, data: input as never });
 }
@@ -89,6 +92,9 @@ export async function deleteBill(userId: string, id: string) {
 
 /**
  * Marks the current cycle paid/received: records a real transaction (if an account is linked).
+ * When both `accountId` and `debtAccountId` are set, this is a debt payoff — records a transfer
+ * from `accountId` into `debtAccountId` instead of a plain expense, so paying a debt bill both
+ * deducts the money and pays down the linked liability account in one action.
  * Recurring bills advance to their next cycle and reopen as UNPAID; one-off bills just stay PAID for good.
  */
 export async function markBillPaid(userId: string, id: string) {
@@ -96,7 +102,30 @@ export async function markBillPaid(userId: string, id: string) {
   if (!bill) throw ApiError.notFound("Bill not found");
 
   return prisma.$transaction(async (tx) => {
-    if (bill.accountId) {
+    if (bill.accountId && bill.debtAccountId) {
+      await tx.transaction.create({
+        data: {
+          userId,
+          title: bill.name,
+          amount: bill.amount,
+          type: "TRANSFER",
+          date: new Date(),
+          accountId: bill.accountId,
+          transferFromAccountId: bill.accountId,
+          transferToAccountId: bill.debtAccountId,
+          categoryId: bill.categoryId,
+          notes: `Debt payoff: ${bill.name}`,
+        },
+      });
+      await tx.account.update({
+        where: { id: bill.accountId },
+        data: { balance: { decrement: Number(bill.amount) } },
+      });
+      await tx.account.update({
+        where: { id: bill.debtAccountId },
+        data: { balance: { increment: Number(bill.amount) } },
+      });
+    } else if (bill.accountId) {
       await tx.transaction.create({
         data: {
           userId,

@@ -401,6 +401,8 @@
       "account": "Account ({{optional}})",
       "category": "Category ({{optional}})",
       "accountHint": "Set this to auto-record a transaction when marked paid.",
+      "debtAccount": "Pay down debt in ({{optional}})",
+      "debtAccountHint": "If this bill is a debt you owe, pick the debt/liability account here. Marking it paid will transfer the amount from Account above into this one, instead of a plain expense.",
       "create": "Create bill"
     }
   },

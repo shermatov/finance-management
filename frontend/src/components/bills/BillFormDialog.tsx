@@ -47,6 +47,7 @@ export function BillFormDialog({
     dueDate: z.string().optional(),
     accountId: z.string().uuid().optional().or(z.literal("")),
     categoryId: z.string().uuid().optional().or(z.literal("")),
+    debtAccountId: z.string().uuid().optional().or(z.literal("")),
   });
   type FormValues = z.infer<typeof schema>;
 
@@ -70,8 +71,18 @@ export function BillFormDialog({
               dueDate: bill.dueDate ? format(new Date(bill.dueDate), "yyyy-MM-dd") : "",
               accountId: bill.accountId ?? "",
               categoryId: bill.categoryId ?? "",
+              debtAccountId: bill.debtAccountId ?? "",
             }
-          : { name: "", amount: undefined, type: "EXPENSE", frequency: "ONCE", dueDate: format(new Date(), "yyyy-MM-dd"), accountId: "", categoryId: "" }
+          : {
+              name: "",
+              amount: undefined,
+              type: "EXPENSE",
+              frequency: "ONCE",
+              dueDate: format(new Date(), "yyyy-MM-dd"),
+              accountId: "",
+              categoryId: "",
+              debtAccountId: "",
+            }
       );
     }
   }, [open, bill, reset]);
@@ -84,6 +95,7 @@ export function BillFormDialog({
       dueDate: values.dueDate || undefined,
       accountId: values.accountId || undefined,
       categoryId: values.categoryId || undefined,
+      debtAccountId: values.debtAccountId || undefined,
     };
     try {
       if (isEditing && bill) {
@@ -211,6 +223,29 @@ export function BillFormDialog({
                 )}
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t("bills.form.debtAccount", { optional: t("common.optional") })}</Label>
+            <Controller
+              control={control}
+              name="debtAccountId"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("common.none") ?? undefined} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts?.map((acc) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-xs text-muted-foreground">{t("bills.form.debtAccountHint")}</p>
           </div>
 
           <DialogFooter>
