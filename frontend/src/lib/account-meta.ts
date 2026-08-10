@@ -17,7 +17,7 @@ export const accountTypeIconName: Record<AccountType, string> = {
   INVESTMENT: "trending-up",
 };
 
-export const currencyOptions: Currency[] = ["USD", "EUR", "GBP", "KGS", "RUB", "KZT"];
+export const currencyOptions: Currency[] = ["USD", "EUR", "GBP", "KGS", "RUB", "KZT", "PLN"];
 
 export const accountColorSwatches = [
   "#4F46E5",

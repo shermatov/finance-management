@@ -1,6 +1,6 @@
 export type TransactionType = "INCOME" | "EXPENSE" | "TRANSFER";
 export type AccountType = "CASH" | "BANK" | "CREDIT_CARD" | "SAVINGS" | "INVESTMENT";
-export type Currency = "USD" | "EUR" | "GBP" | "KGS" | "RUB" | "KZT";
+export type Currency = "USD" | "EUR" | "GBP" | "KGS" | "RUB" | "KZT" | "PLN";
 
 export interface User {
   id: string;

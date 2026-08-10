@@ -32,6 +32,7 @@ enum Currency {
   KGS
   RUB
   KZT
+  PLN
 }
 
 enum BillFrequency {

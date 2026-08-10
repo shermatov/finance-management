@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const accountTypes = ["CASH", "BANK", "CREDIT_CARD", "SAVINGS", "INVESTMENT"] as const;
-const currencies = ["USD", "EUR", "GBP", "KGS", "RUB", "KZT"] as const;
+const currencies = ["USD", "EUR", "GBP", "KGS", "RUB", "KZT", "PLN"] as const;
 
 export const createAccountSchema = z.object({
   name: z.string().min(1).max(100),

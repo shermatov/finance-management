@@ -1,19 +1,13 @@
 import { prisma } from "../../lib/prisma.js";
 import { getUpcomingBills } from "../bills/bills.service.js";
+import { convert } from "../../lib/exchangeRates.js";
+import type { Currency } from "@prisma/client";
 
 function monthRange(offset = 0) {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth() - offset, 1);
   const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
   return { start, end };
-}
-
-async function sumByType(userId: string, type: "INCOME" | "EXPENSE", start: Date, end: Date) {
-  const result = await prisma.transaction.aggregate({
-    where: { userId, type, date: { gte: start, lt: end } },
-    _sum: { amount: true },
-  });
-  return Number(result._sum.amount ?? 0);
 }
 
 function clamp(n: number, min: number, max: number) {
@@ -86,24 +80,40 @@ function computeFinancialHealth(params: {
 }
 
 export async function getSummary(userId: string) {
+  const settings = await prisma.settings.findUnique({ where: { userId } });
+  const baseCurrency: Currency = settings?.currency ?? "USD";
+
   const accounts = await prisma.account.findMany({ where: { userId, isArchived: false } });
-  const currentBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const convertedBalances = await Promise.all(
+    accounts.map((a) => convert(Number(a.balance), a.currency, baseCurrency))
+  );
+  const currentBalance = convertedBalances.reduce((sum, b) => sum + b, 0);
   const netWorth = currentBalance; // phase 1: no liabilities/investments valuation beyond account balances
 
   const { start, end } = monthRange(0);
-  const [monthlyIncome, monthlyExpenses] = await Promise.all([
-    sumByType(userId, "INCOME", start, end),
-    sumByType(userId, "EXPENSE", start, end),
-  ]);
-  const savings = monthlyIncome - monthlyExpenses;
+  const sixMonthsAgoStart = monthRange(5).start;
+
+  // Fetch every income/expense transaction in the window once (with its account's
+  // currency), convert each to the base currency, then bucket in JS below. Currency
+  // conversion can't happen inside a Prisma aggregate/groupBy, since each row may need
+  // a different rate depending on which account it belongs to.
+  const periodTransactions = await prisma.transaction.findMany({
+    where: { userId, date: { gte: sixMonthsAgoStart }, type: { in: ["INCOME", "EXPENSE"] } },
+    include: { account: true },
+  });
+  const convertedTransactions = await Promise.all(
+    periodTransactions.map(async (tx) => ({
+      ...tx,
+      convertedAmount: await convert(Number(tx.amount), tx.account.currency, baseCurrency),
+    }))
+  );
 
   const cashFlow = [];
   for (let i = 5; i >= 0; i--) {
     const range = monthRange(i);
-    const [income, expenses] = await Promise.all([
-      sumByType(userId, "INCOME", range.start, range.end),
-      sumByType(userId, "EXPENSE", range.start, range.end),
-    ]);
+    const inRange = convertedTransactions.filter((tx) => tx.date >= range.start && tx.date < range.end);
+    const income = inRange.filter((tx) => tx.type === "INCOME").reduce((s, tx) => s + tx.convertedAmount, 0);
+    const expenses = inRange.filter((tx) => tx.type === "EXPENSE").reduce((s, tx) => s + tx.convertedAmount, 0);
     cashFlow.push({
       month: range.start.toLocaleString("en-US", { month: "short" }),
       income,
@@ -111,6 +121,9 @@ export async function getSummary(userId: string) {
       net: income - expenses,
     });
   }
+  const monthlyIncome = cashFlow[cashFlow.length - 1].income;
+  const monthlyExpenses = cashFlow[cashFlow.length - 1].expenses;
+  const savings = monthlyIncome - monthlyExpenses;
 
   const recentTransactions = await prisma.transaction.findMany({
     where: { userId },
@@ -126,27 +139,27 @@ export async function getSummary(userId: string) {
     orderBy: { createdAt: "asc" },
   });
 
-  const categoryBreakdownRaw = await prisma.transaction.groupBy({
-    by: ["categoryId"],
-    where: { userId, type: "EXPENSE", date: { gte: start, lt: end }, categoryId: { not: null } },
-    _sum: { amount: true },
-  });
-  const categories = await prisma.category.findMany({
-    where: { id: { in: categoryBreakdownRaw.map((c) => c.categoryId!).filter(Boolean) } },
-  });
-  const categoryBreakdown = categoryBreakdownRaw.map((row) => {
-    const category = categories.find((c) => c.id === row.categoryId);
+  const currentMonthExpenses = convertedTransactions.filter(
+    (tx) => tx.type === "EXPENSE" && tx.categoryId && tx.date >= start && tx.date < end
+  );
+  const categoryTotals = new Map<string, number>();
+  for (const tx of currentMonthExpenses) {
+    categoryTotals.set(tx.categoryId!, (categoryTotals.get(tx.categoryId!) ?? 0) + tx.convertedAmount);
+  }
+  const categories = await prisma.category.findMany({ where: { id: { in: [...categoryTotals.keys()] } } });
+  const categoryBreakdown = [...categoryTotals.entries()].map(([categoryId, amount]) => {
+    const category = categories.find((c) => c.id === categoryId);
     return {
-      categoryId: row.categoryId,
+      categoryId,
       name: category?.name ?? "Uncategorized",
       color: category?.color ?? "#94A3B8",
-      amount: Number(row._sum.amount ?? 0),
+      amount,
     };
   });
 
   const savingsRate = monthlyIncome > 0 ? savings / monthlyIncome : 0;
   const health = computeFinancialHealth({
-    accounts: accounts.map((a) => ({ balance: Number(a.balance) })),
+    accounts: convertedBalances.map((balance) => ({ balance })),
     monthlyIncome,
     monthlyExpenses,
     cashFlow,
@@ -155,6 +168,7 @@ export async function getSummary(userId: string) {
   return {
     currentBalance,
     netWorth,
+    baseCurrency,
     monthlyIncome,
     monthlyExpenses,
     savings,

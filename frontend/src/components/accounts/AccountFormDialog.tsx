@@ -40,7 +40,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
     name: z.string().min(1, t("validation.required")).max(100),
     type: z.enum(["CASH", "BANK", "CREDIT_CARD", "SAVINGS", "INVESTMENT"]),
     balance: z.coerce.number().finite(),
-    currency: z.enum(["USD", "EUR", "GBP", "KGS", "RUB", "KZT"]),
+    currency: z.enum(["USD", "EUR", "GBP", "KGS", "RUB", "KZT", "PLN"]),
     color: z.string(),
   });
   type FormValues = z.infer<typeof schema>;
