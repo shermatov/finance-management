@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTransferBetweenAccounts } from "@/hooks/useAccounts";
+import { currencyOptions } from "@/lib/account-meta";
 import { getErrorMessage } from "@/lib/api";
 import type { Account } from "@/types";
 
@@ -35,6 +37,7 @@ export function TransferDialog({
       fromAccountId: z.string().uuid(t("validation.selectAccount")),
       toAccountId: z.string().uuid(t("validation.selectAccount")),
       amount: z.coerce.number().positive(t("validation.enterAmount")),
+      currency: z.enum(currencyOptions as [string, ...string[]]),
       notes: z.string().optional(),
     })
     .refine((data) => data.fromAccountId !== data.toAccountId, {
@@ -43,15 +46,25 @@ export function TransferDialog({
     });
   type FormValues = z.infer<typeof schema>;
 
-  const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, reset, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
+    defaultValues: { currency: currencyOptions[0] },
   });
 
   const fromAccountId = watch("fromAccountId");
   const toAccountId = watch("toAccountId");
+  const selectedCurrency = watch("currency");
   const fromAccount = accounts.find((a) => a.id === fromAccountId);
   const toAccount = accounts.find((a) => a.id === toAccountId);
-  const currenciesDiffer = !!fromAccount && !!toAccount && fromAccount.currency !== toAccount.currency;
+
+  // Default the entered currency to match the source account whenever it changes, since
+  // that's the common case — the user can still override it below.
+  useEffect(() => {
+    if (fromAccount) setValue("currency", fromAccount.currency);
+  }, [fromAccountId, fromAccount, setValue]);
+
+  const destinationCurrency = toAccount?.currency;
+  const willConvert = !!destinationCurrency && selectedCurrency !== destinationCurrency;
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -118,24 +131,43 @@ export function TransferDialog({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">
-              {fromAccount
-                ? t("accounts.transferDialog.amountInCurrency", { currency: fromAccount.currency })
-                : t("accounts.transferDialog.amount")}
-            </Label>
-            <Input id="amount" type="number" step="0.01" {...register("amount")} />
-            {errors.amount ? (
-              <p className="text-xs text-danger">{errors.amount.message}</p>
-            ) : currenciesDiffer ? (
-              <p className="text-xs text-muted-foreground">
-                {t("accounts.transferDialog.currencyConvertHint", {
-                  from: fromAccount!.currency,
-                  to: toAccount!.currency,
-                })}
-              </p>
-            ) : null}
+          <div className="grid grid-cols-[1fr_auto] gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="amount">{t("accounts.transferDialog.amount")}</Label>
+              <Input id="amount" type="number" step="0.01" {...register("amount")} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("accounts.transferDialog.currency")}</Label>
+              <Controller
+                control={control}
+                name="currency"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencyOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
           </div>
+          {errors.amount ? (
+            <p className="-mt-2 text-xs text-danger">{errors.amount.message}</p>
+          ) : willConvert ? (
+            <p className="-mt-2 text-xs text-muted-foreground">
+              {t("accounts.transferDialog.currencyConvertHint", {
+                from: selectedCurrency,
+                to: destinationCurrency,
+              })}
+            </p>
+          ) : null}
 
           <div className="space-y-1.5">
             <Label htmlFor="notes">{t("accounts.transferDialog.notes", { optional: t("common.optional") })}</Label>

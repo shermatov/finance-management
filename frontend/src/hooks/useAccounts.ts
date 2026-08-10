@@ -57,7 +57,13 @@ export function useDeleteAccount() {
 export function useTransferBetweenAccounts() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { fromAccountId: string; toAccountId: string; amount: number; notes?: string }) =>
+    mutationFn: async (input: {
+      fromAccountId: string;
+      toAccountId: string;
+      amount: number;
+      currency?: string;
+      notes?: string;
+    }) =>
       (await api.post("/accounts/transfer", input)).data,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });

@@ -22,6 +22,9 @@ export const transferSchema = z.object({
   fromAccountId: z.string().uuid(),
   toAccountId: z.string().uuid(),
   amount: z.number().positive(),
+  // Currency the entered `amount` is denominated in. Defaults to the source account's own
+  // currency if omitted; when different, it's converted into the source currency first.
+  currency: z.enum(currencies).optional(),
   date: z.coerce.date().default(() => new Date()),
   notes: z.string().max(500).optional(),
 });

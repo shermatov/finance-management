@@ -48,7 +48,14 @@ export async function deleteAccount(userId: string, id: string) {
 
 export async function transferBetweenAccounts(
   userId: string,
-  input: { fromAccountId: string; toAccountId: string; amount: number; date: Date; notes?: string }
+  input: {
+    fromAccountId: string;
+    toAccountId: string;
+    amount: number;
+    currency?: string;
+    date: Date;
+    notes?: string;
+  }
 ) {
   if (input.fromAccountId === input.toAccountId) {
     throw ApiError.badRequest("Source and destination accounts must be different");
@@ -59,16 +66,19 @@ export async function transferBetweenAccounts(
     getAccount(userId, input.toAccountId),
   ]);
 
-  // `amount` is denominated in the source account's currency (matches how it's displayed
-  // elsewhere, since the transaction's own `accountId` is the source). The destination
-  // gets the converted amount, so a transfer between different-currency accounts doesn't
-  // just copy the raw number over.
-  const convertedAmount = await convert(input.amount, fromAccount.currency, toAccount.currency);
+  // The entered amount can be denominated in any currency (defaulting to the source
+  // account's own). It's converted into the source account's currency first — that's
+  // what actually gets deducted and stored on the transaction, matching how amounts are
+  // displayed elsewhere (always in the linked account's currency). It's then converted a
+  // second time into the destination's currency for the credit.
+  const enteredCurrency = (input.currency ?? fromAccount.currency) as typeof fromAccount.currency;
+  const sourceAmount = await convert(input.amount, enteredCurrency, fromAccount.currency);
+  const convertedAmount = await convert(sourceAmount, fromAccount.currency, toAccount.currency);
 
   return prisma.$transaction(async (tx) => {
     await tx.account.update({
       where: { id: fromAccount.id },
-      data: { balance: { decrement: input.amount } },
+      data: { balance: { decrement: sourceAmount } },
     });
     await tx.account.update({
       where: { id: toAccount.id },
@@ -79,7 +89,7 @@ export async function transferBetweenAccounts(
       data: {
         userId,
         title: `Transfer: ${fromAccount.name} → ${toAccount.name}`,
-        amount: input.amount,
+        amount: sourceAmount,
         type: "TRANSFER",
         date: input.date,
         notes: input.notes,
