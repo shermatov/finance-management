@@ -14,7 +14,7 @@ export interface BillInput {
   amount: number;
   type: "INCOME" | "EXPENSE";
   frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
-  dueDate: string;
+  dueDate?: string | null;
   categoryId?: string;
   accountId?: string;
 }

@@ -37,6 +37,7 @@ export default function BillsPage() {
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null);
   const [payingBill, setPayingBill] = useState<Bill | null>(null);
   const [paidOpen, setPaidOpen] = useState(false);
+  const [laterOpen, setLaterOpen] = useState(false);
 
   const openCreate = () => {
     setEditingBill(null);
@@ -78,7 +79,7 @@ export default function BillsPage() {
   const renderBillCard = (bill: Bill) => {
     const isOnce = bill.frequency === "ONCE";
     const isPaid = bill.status === "PAID";
-    const isOverdue = !isPaid && new Date(bill.dueDate) < new Date();
+    const isOverdue = !isPaid && !!bill.dueDate && new Date(bill.dueDate) < new Date();
     const frequencyLabel = isOnce
       ? t("bills.oneTime")
       : t(`bills.${bill.frequency.toLowerCase()}` as "bills.weekly" | "bills.monthly" | "bills.yearly");
@@ -110,7 +111,9 @@ export default function BillsPage() {
                 <span className="truncate">
                   {isPaid
                     ? t("bills.paid")
-                    : `${frequencyLabel} · ${isOverdue ? t("bills.overdue") : t("bills.due")} ${formatDate(bill.dueDate)}`}
+                    : bill.dueDate
+                      ? `${frequencyLabel} · ${isOverdue ? t("bills.overdue") : t("bills.due")} ${formatDate(bill.dueDate)}`
+                      : `${frequencyLabel} · ${t("bills.noDueDate")}`}
                 </span>
               </p>
             </div>
@@ -143,7 +146,8 @@ export default function BillsPage() {
     );
   };
 
-  const activeBills = (bills ?? []).filter((b) => b.status !== "PAID");
+  const activeBills = (bills ?? []).filter((b) => b.status !== "PAID" && b.dueDate);
+  const laterBills = (bills ?? []).filter((b) => b.status !== "PAID" && !b.dueDate);
   const paidBills = (bills ?? []).filter((b) => b.status === "PAID");
 
   return (
@@ -181,10 +185,25 @@ export default function BillsPage() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {activeBills.length === 0 ? (
+          {activeBills.length === 0 && laterBills.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("bills.nothingActive")}</p>
           ) : (
             <div className="space-y-3">{activeBills.map(renderBillCard)}</div>
+          )}
+
+          {laterBills.length > 0 && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setLaterOpen((v) => !v)}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                {laterOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                <Folder className="h-4 w-4" />
+                {t("bills.laterFolder", { count: laterBills.length })}
+              </button>
+              {laterOpen && <div className="space-y-3">{laterBills.map(renderBillCard)}</div>}
+            </div>
           )}
 
           {paidBills.length > 0 && (

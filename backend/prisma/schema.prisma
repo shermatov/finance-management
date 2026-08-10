@@ -271,7 +271,7 @@ model Bill {
   amount     Decimal         @db.Decimal(14, 2)
   type       TransactionType @default(EXPENSE)
   frequency  BillFrequency
-  dueDate    DateTime
+  dueDate    DateTime?
   status     BillStatus      @default(UNPAID)
   categoryId String?
   category   Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)

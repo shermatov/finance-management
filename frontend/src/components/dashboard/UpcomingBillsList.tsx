@@ -31,7 +31,9 @@ export function UpcomingBillsList({ bills }: { bills: Bill[] }) {
               <li key={bill.id} className="flex items-center justify-between rounded-xl border border-border/60 p-3">
                 <div>
                   <p className="text-sm font-medium">{bill.name}</p>
-                  <p className="text-xs text-muted-foreground">{t("dashboard.upcoming.due", { date: formatDate(bill.dueDate) })}</p>
+                  {bill.dueDate && (
+                    <p className="text-xs text-muted-foreground">{t("dashboard.upcoming.due", { date: formatDate(bill.dueDate) })}</p>
+                  )}
                 </div>
                 <p
                   className={cn(

@@ -11,9 +11,10 @@ function advance(date: Date, frequency: Frequency): Date {
   return next;
 }
 
-/** Rolls a recurring bill's dueDate forward past "now", resetting status for the new cycle. One-off bills are left alone — a past due date just means it's overdue, not that it should reschedule itself. */
-async function rollForwardIfPast(bill: { id: string; dueDate: Date; frequency: Frequency; status: string }) {
-  if (bill.frequency === "ONCE" || bill.dueDate >= new Date()) return bill;
+/** Rolls a recurring bill's dueDate forward past "now", resetting status for the new cycle. One-off bills
+ * and bills with no due date (a "pay later" backlog item) are left alone — there's nothing to roll forward. */
+async function rollForwardIfPast(bill: { id: string; dueDate: Date | null; frequency: Frequency; status: string }) {
+  if (bill.frequency === "ONCE" || !bill.dueDate || bill.dueDate >= new Date()) return bill;
 
   let dueDate = bill.dueDate;
   while (dueDate < new Date()) {
@@ -27,14 +28,20 @@ async function rollForwardIfPast(bill: { id: string; dueDate: Date; frequency: F
 }
 
 export async function listBills(userId: string) {
-  const bills = await prisma.bill.findMany({ where: { userId }, orderBy: { dueDate: "asc" } });
+  const bills = await prisma.bill.findMany({ where: { userId } });
   const rolled = await Promise.all(bills.map((bill) => rollForwardIfPast(bill)));
-  return rolled.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+  // Bills with no due date (pay-later backlog) sort after every dated bill.
+  return rolled.sort((a, b) => {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return a.dueDate.getTime() - b.dueDate.getTime();
+  });
 }
 
 export async function getUpcomingBills(userId: string, limit: number) {
   const bills = await listBills(userId);
-  return bills.filter((b) => b.status === "UNPAID").slice(0, limit);
+  return bills.filter((b) => b.status === "UNPAID" && b.dueDate).slice(0, limit);
 }
 
 async function assertOwnedAccount(userId: string, accountId?: string) {
@@ -56,7 +63,7 @@ export async function createBill(
     amount: number;
     type: "INCOME" | "EXPENSE";
     frequency: Frequency;
-    dueDate: Date;
+    dueDate?: Date | null;
     categoryId?: string;
     accountId?: string;
   }
@@ -96,7 +103,7 @@ export async function markBillPaid(userId: string, id: string) {
           title: bill.name,
           amount: bill.amount,
           type: bill.type,
-          date: bill.dueDate,
+          date: bill.dueDate ?? new Date(),
           accountId: bill.accountId,
           categoryId: bill.categoryId,
           notes: `Recorded from bill: ${bill.name}`,
@@ -115,7 +122,7 @@ export async function markBillPaid(userId: string, id: string) {
 
     return tx.bill.update({
       where: { id: bill.id },
-      data: { dueDate: advance(bill.dueDate, frequency), status: "UNPAID" },
+      data: { dueDate: advance(bill.dueDate ?? new Date(), frequency), status: "UNPAID" },
     });
   });
 }

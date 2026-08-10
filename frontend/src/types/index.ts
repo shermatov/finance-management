@@ -76,7 +76,7 @@ export interface Bill {
   amount: string;
   type: "INCOME" | "EXPENSE";
   frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
-  dueDate: string;
+  dueDate: string | null;
   status: "UNPAID" | "PAID";
   categoryId: string | null;
   accountId: string | null;

@@ -44,7 +44,7 @@ export function BillFormDialog({
     amount: z.coerce.number().positive(t("validation.enterAmount")),
     type: z.enum(["INCOME", "EXPENSE"]),
     frequency: z.enum(["ONCE", "WEEKLY", "MONTHLY", "YEARLY"]),
-    dueDate: z.string().min(1, t("validation.required")),
+    dueDate: z.string().optional(),
     accountId: z.string().uuid().optional().or(z.literal("")),
     categoryId: z.string().uuid().optional().or(z.literal("")),
   });
@@ -67,7 +67,7 @@ export function BillFormDialog({
               amount: Number(bill.amount),
               type: bill.type,
               frequency: bill.frequency,
-              dueDate: format(new Date(bill.dueDate), "yyyy-MM-dd"),
+              dueDate: bill.dueDate ? format(new Date(bill.dueDate), "yyyy-MM-dd") : "",
               accountId: bill.accountId ?? "",
               categoryId: bill.categoryId ?? "",
             }
@@ -81,6 +81,7 @@ export function BillFormDialog({
   const onSubmit = async (values: FormValues) => {
     const input: BillInput = {
       ...values,
+      dueDate: values.dueDate || undefined,
       accountId: values.accountId || undefined,
       categoryId: values.categoryId || undefined,
     };
@@ -131,9 +132,17 @@ export function BillFormDialog({
               {errors.amount && <p className="text-xs text-danger">{errors.amount.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="dueDate">{isEditing ? t("bills.form.nextDueDate") : t("bills.form.dueDate")}</Label>
+              <Label htmlFor="dueDate">
+                {isEditing
+                  ? t("bills.form.nextDueDate", { optional: t("common.optional") })
+                  : t("bills.form.dueDate", { optional: t("common.optional") })}
+              </Label>
               <Input id="dueDate" type="date" {...register("dueDate")} />
-              {errors.dueDate && <p className="text-xs text-danger">{errors.dueDate.message}</p>}
+              {errors.dueDate ? (
+                <p className="text-xs text-danger">{errors.dueDate.message}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("bills.form.dueDateHint")}</p>
+              )}
             </div>
           </div>
 
