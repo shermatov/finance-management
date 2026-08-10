@@ -52,7 +52,7 @@
     "reports": "Отчёты",
     "settings": "Настройки",
     "soon": "Скоро",
-    "searchPlaceholder": "Поиск транзакций, платежей…",
+    "searchPlaceholder": "Поиск транзакций…",
     "logOut": "Выйти"
   },
   "errorBoundary": {

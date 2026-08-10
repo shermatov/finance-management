@@ -1,4 +1,5 @@
-import { useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Menu, Search, Sun, Moon, Laptop, Languages, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,11 +29,19 @@ const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const updateSettings = useUpdateSettings();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const current = navItems.find((item) => item.path === location.pathname);
+
+  const runSearch = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+    navigate(`/transactions?search=${encodeURIComponent(query)}`);
+  };
 
   const changeLanguage = (lang: SupportedLanguage) => {
     i18n.changeLanguage(lang);
@@ -50,7 +59,13 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <div className="relative hidden w-64 sm:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder={t("nav.searchPlaceholder") ?? undefined} className="pl-9" />
+          <Input
+            placeholder={t("nav.searchPlaceholder") ?? undefined}
+            className="pl-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && runSearch()}
+          />
         </div>
 
         <DropdownMenu>

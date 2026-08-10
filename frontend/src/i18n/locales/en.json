@@ -52,7 +52,7 @@
     "reports": "Reports",
     "settings": "Settings",
     "soon": "Soon",
-    "searchPlaceholder": "Search transactions, bills…",
+    "searchPlaceholder": "Search transactions…",
     "logOut": "Log out"
   },
   "errorBoundary": {

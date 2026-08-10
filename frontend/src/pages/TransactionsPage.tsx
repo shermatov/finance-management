@@ -20,7 +20,13 @@ export default function TransactionsPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const accountIdParam = searchParams.get("accountId") ?? undefined;
-  const [filters, setFilters] = useState<TransactionFilters>({ page: 1, limit: 20, accountId: accountIdParam });
+  const searchParam = searchParams.get("search") ?? undefined;
+  const [filters, setFilters] = useState<TransactionFilters>({
+    page: 1,
+    limit: 20,
+    accountId: accountIdParam,
+    search: searchParam,
+  });
   const { data, isLoading } = useTransactions(filters);
   const deleteTransaction = useDeleteTransaction();
 
