@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -27,6 +27,13 @@ export default function TransactionsPage() {
     accountId: accountIdParam,
     search: searchParam,
   });
+  useEffect(() => {
+    setFilters((f) => ({ ...f, page: 1, accountId: accountIdParam, search: searchParam }));
+    // Only re-sync when the URL's own params change (e.g. a new Topbar search) — not on
+    // every in-page filter edit, which manages `filters` directly without touching the URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountIdParam, searchParam]);
+
   const { data, isLoading } = useTransactions(filters);
   const deleteTransaction = useDeleteTransaction();
 
