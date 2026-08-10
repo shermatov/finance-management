@@ -121,7 +121,10 @@ export async function getSummary(userId: string) {
 
   const upcomingBills = await getUpcomingBills(userId, 5);
 
-  const savingsGoals = await prisma.savingsGoal.findMany({ where: { userId }, orderBy: { createdAt: "asc" } });
+  const savingsGoals = await prisma.savingsGoal.findMany({
+    where: { userId, isActive: true },
+    orderBy: { createdAt: "asc" },
+  });
 
   const categoryBreakdownRaw = await prisma.transaction.groupBy({
     by: ["categoryId"],

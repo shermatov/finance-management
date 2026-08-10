@@ -87,9 +87,10 @@ export interface SavingsGoal {
   name: string;
   icon: string;
   color: string;
-  targetAmount: string;
+  targetAmount: string | null;
   currentAmount: string;
   deadline: string | null;
+  isActive: boolean;
 }
 
 export interface CashFlowPoint {

@@ -7,7 +7,15 @@ export async function listGoals(userId: string) {
 
 export async function createGoal(
   userId: string,
-  input: { name: string; targetAmount: number; currentAmount: number; deadline?: Date; icon: string; color: string }
+  input: {
+    name: string;
+    targetAmount?: number;
+    currentAmount: number;
+    deadline?: Date;
+    isActive: boolean;
+    icon: string;
+    color: string;
+  }
 ) {
   return prisma.savingsGoal.create({ data: { userId, ...input } });
 }

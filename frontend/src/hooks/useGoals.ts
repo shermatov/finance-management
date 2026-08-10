@@ -11,9 +11,10 @@ export function useGoals() {
 
 export interface GoalInput {
   name: string;
-  targetAmount: number;
+  targetAmount?: number;
   currentAmount: number;
   deadline?: string;
+  isActive: boolean;
   icon: string;
   color: string;
 }

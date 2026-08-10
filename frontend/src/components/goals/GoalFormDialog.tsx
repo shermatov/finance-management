@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useCreateGoal, useUpdateGoal, type GoalInput } from "@/hooks/useGoals";
 import { accountColorSwatches } from "@/lib/account-meta";
 import { getErrorMessage } from "@/lib/api";
@@ -35,19 +36,34 @@ export function GoalFormDialog({
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal();
 
-  const schema = z.object({
-    name: z.string().min(1, t("validation.required")).max(100),
-    targetAmount: z.coerce.number().positive(t("validation.enterTargetAmount")),
-    currentAmount: z.coerce.number().min(0, t("validation.cantBeNegative")),
-    deadline: z.string().optional(),
-    color: z.string(),
-  });
+  const schema = z
+    .object({
+      name: z.string().min(1, t("validation.required")).max(100),
+      isActive: z.boolean(),
+      targetAmount: z.coerce.number().min(0).optional(),
+      currentAmount: z.coerce.number().min(0, t("validation.cantBeNegative")),
+      deadline: z.string().optional(),
+      color: z.string(),
+    })
+    .superRefine((data, ctx) => {
+      if (data.isActive && (!data.targetAmount || data.targetAmount <= 0)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t("validation.enterTargetAmount"), path: ["targetAmount"] });
+      }
+    });
   type FormValues = z.infer<typeof schema>;
 
-  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", targetAmount: undefined, currentAmount: 0, deadline: "", color: accountColorSwatches[0] },
+    defaultValues: {
+      name: "",
+      isActive: true,
+      targetAmount: undefined,
+      currentAmount: 0,
+      deadline: "",
+      color: accountColorSwatches[0],
+    },
   });
+  const isActive = watch("isActive");
 
   useEffect(() => {
     if (open) {
@@ -55,12 +71,13 @@ export function GoalFormDialog({
         goal
           ? {
               name: goal.name,
-              targetAmount: Number(goal.targetAmount),
+              isActive: goal.isActive,
+              targetAmount: goal.targetAmount ? Number(goal.targetAmount) : undefined,
               currentAmount: Number(goal.currentAmount),
               deadline: goal.deadline ? format(new Date(goal.deadline), "yyyy-MM-dd") : "",
               color: goal.color,
             }
-          : { name: "", targetAmount: undefined, currentAmount: 0, deadline: "", color: accountColorSwatches[0] }
+          : { name: "", isActive: true, targetAmount: undefined, currentAmount: 0, deadline: "", color: accountColorSwatches[0] }
       );
     }
   }, [open, goal, reset]);
@@ -70,9 +87,10 @@ export function GoalFormDialog({
   const onSubmit = async (values: FormValues) => {
     const input: GoalInput = {
       name: values.name,
-      targetAmount: values.targetAmount,
-      currentAmount: values.currentAmount,
-      deadline: values.deadline || undefined,
+      isActive: values.isActive,
+      targetAmount: values.isActive ? values.targetAmount : undefined,
+      currentAmount: values.isActive ? values.currentAmount : 0,
+      deadline: values.isActive ? values.deadline || undefined : undefined,
       color: values.color,
       icon: "piggy-bank",
     };
@@ -103,29 +121,45 @@ export function GoalFormDialog({
             {errors.name && <p className="text-xs text-danger">{errors.name.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="targetAmount">{t("goals.form.targetAmount")}</Label>
-              <Input id="targetAmount" type="number" step="0.01" {...register("targetAmount")} />
-              {errors.targetAmount && <p className="text-xs text-danger">{errors.targetAmount.message}</p>}
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
+            <div>
+              <p className="text-sm font-medium">{t("goals.form.active")}</p>
+              <p className="text-xs text-muted-foreground">{t("goals.form.activeHint")}</p>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="currentAmount">
-                {isEditing ? t("goals.form.currentAmountLabel") : t("goals.form.startingAmount")}
-              </Label>
-              <Input id="currentAmount" type="number" step="0.01" {...register("currentAmount")} />
-              {errors.currentAmount ? (
-                <p className="text-xs text-danger">{errors.currentAmount.message}</p>
-              ) : isEditing ? (
-                <p className="text-xs text-muted-foreground">{t("goals.form.currentAmountHint")}</p>
-              ) : null}
-            </div>
+            <Controller
+              control={control}
+              name="isActive"
+              render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
+            />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="deadline">{t("goals.form.deadline", { optional: t("common.optional") })}</Label>
-            <Input id="deadline" type="date" {...register("deadline")} />
-          </div>
+          {isActive && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="targetAmount">{t("goals.form.targetAmount")}</Label>
+                  <Input id="targetAmount" type="number" step="0.01" {...register("targetAmount")} />
+                  {errors.targetAmount && <p className="text-xs text-danger">{errors.targetAmount.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="currentAmount">
+                    {isEditing ? t("goals.form.currentAmountLabel") : t("goals.form.startingAmount")}
+                  </Label>
+                  <Input id="currentAmount" type="number" step="0.01" {...register("currentAmount")} />
+                  {errors.currentAmount ? (
+                    <p className="text-xs text-danger">{errors.currentAmount.message}</p>
+                  ) : isEditing ? (
+                    <p className="text-xs text-muted-foreground">{t("goals.form.currentAmountHint")}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="deadline">{t("goals.form.deadline", { optional: t("common.optional") })}</Label>
+                <Input id="deadline" type="date" {...register("deadline")} />
+              </div>
+            </>
+          )}
 
           <div className="space-y-1.5">
             <Label>{t("goals.form.color")}</Label>

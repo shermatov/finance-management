@@ -27,13 +27,14 @@ export function SavingsGoalsWidget({ goals }: { goals: SavingsGoal[] }) {
         ) : (
           <ul className="space-y-4">
             {goals.map((goal) => {
-              const progress = Math.min(100, Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100));
+              const target = Number(goal.targetAmount ?? 0);
+              const progress = target > 0 ? Math.min(100, Math.round((Number(goal.currentAmount) / target) * 100)) : 0;
               return (
                 <li key={goal.id}>
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="font-medium">{goal.name}</span>
                     <span className="text-muted-foreground">
-                      {formatNumber(goal.currentAmount)} / {formatNumber(goal.targetAmount)}
+                      {formatNumber(goal.currentAmount)} / {formatNumber(target)}
                     </span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-secondary">

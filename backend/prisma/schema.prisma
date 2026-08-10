@@ -247,9 +247,10 @@ model SavingsGoal {
   name          String
   icon          String    @default("piggy-bank")
   color         String    @default("#22C55E")
-  targetAmount  Decimal   @db.Decimal(14, 2)
+  targetAmount  Decimal?  @db.Decimal(14, 2)
   currentAmount Decimal   @default(0) @db.Decimal(14, 2)
   deadline      DateTime?
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
