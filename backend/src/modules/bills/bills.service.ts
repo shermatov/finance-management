@@ -2,19 +2,51 @@ import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { convert } from "../../lib/exchangeRates.js";
 
-type Frequency = "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
+type Frequency = "ONCE" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
 function advance(date: Date, frequency: Frequency): Date {
   const next = new Date(date);
   if (frequency === "WEEKLY") next.setDate(next.getDate() + 7);
   else if (frequency === "MONTHLY") next.setMonth(next.getMonth() + 1);
+  else if (frequency === "QUARTERLY") next.setMonth(next.getMonth() + 3);
   else if (frequency === "YEARLY") next.setFullYear(next.getFullYear() + 1);
   return next;
 }
 
+/** How many months of income an auto-computed bill looks back over, matching its own cycle
+ * length (a QUARTERLY tax bill is recomputed off the last 3 months of income, etc). */
+function lookbackMonths(frequency: Frequency): number {
+  if (frequency === "QUARTERLY") return 3;
+  if (frequency === "YEARLY") return 12;
+  return 1;
+}
+
+/** Recomputes an auto-compute bill's amount as `rate x total income` in the window immediately
+ * before `asOf`, sized to the bill's own cycle length — since income varies month to month,
+ * this is what makes a variable-income tax bill actually track what's really owed each cycle. */
+async function computeAutoAmount(userId: string, rate: number, asOf: Date, frequency: Frequency): Promise<number> {
+  const months = lookbackMonths(frequency);
+  const windowStart = new Date(asOf);
+  windowStart.setMonth(windowStart.getMonth() - months);
+
+  const result = await prisma.transaction.aggregate({
+    where: { userId, type: "INCOME", date: { gte: windowStart, lt: asOf } },
+    _sum: { amount: true },
+  });
+  return Number(result._sum.amount ?? 0) * rate;
+}
+
 /** Rolls a recurring bill's dueDate forward past "now", resetting status for the new cycle. One-off bills
- * and bills with no due date (a "pay later" backlog item) are left alone — there's nothing to roll forward. */
-async function rollForwardIfPast(bill: { id: string; dueDate: Date | null; frequency: Frequency; status: string }) {
+ * and bills with no due date (a "pay later" backlog item) are left alone — there's nothing to roll forward.
+ * Auto-compute bills (see `autoComputeRate`) get their amount recalculated for the new cycle too. */
+async function rollForwardIfPast(bill: {
+  id: string;
+  userId: string;
+  dueDate: Date | null;
+  frequency: Frequency;
+  status: string;
+  autoComputeRate: unknown;
+}) {
   if (bill.frequency === "ONCE" || !bill.dueDate || bill.dueDate >= new Date()) return bill;
 
   let dueDate = bill.dueDate;
@@ -22,9 +54,13 @@ async function rollForwardIfPast(bill: { id: string; dueDate: Date | null; frequ
     dueDate = advance(dueDate, bill.frequency);
   }
 
+  const amount = bill.autoComputeRate
+    ? await computeAutoAmount(bill.userId, Number(bill.autoComputeRate), dueDate, bill.frequency)
+    : undefined;
+
   return prisma.bill.update({
     where: { id: bill.id },
-    data: { dueDate, status: "UNPAID" },
+    data: { dueDate, status: "UNPAID", ...(amount !== undefined && { amount }) },
   });
 }
 
@@ -68,6 +104,7 @@ export async function createBill(
     categoryId?: string;
     accountId?: string;
     debtAccountId?: string | null;
+    autoComputeRate?: number | null;
   }
 ) {
   await assertOwnedAccount(userId, input.accountId);
@@ -154,9 +191,18 @@ export async function markBillPaid(userId: string, id: string) {
       return tx.bill.update({ where: { id: bill.id }, data: { status: "PAID" } });
     }
 
+    const nextDueDate = advance(bill.dueDate ?? new Date(), frequency);
+    const nextAmount = bill.autoComputeRate
+      ? await computeAutoAmount(userId, Number(bill.autoComputeRate), nextDueDate, frequency)
+      : undefined;
+
     return tx.bill.update({
       where: { id: bill.id },
-      data: { dueDate: advance(bill.dueDate ?? new Date(), frequency), status: "UNPAID" },
+      data: {
+        dueDate: nextDueDate,
+        status: "UNPAID",
+        ...(nextAmount !== undefined && { amount: nextAmount }),
+      },
     });
   });
 }

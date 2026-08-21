@@ -1,11 +1,12 @@
 import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import * as budgetsService from "./budgets.service.js";
+import { currentPeriodMonthYear } from "../../lib/period.js";
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
-  const now = new Date();
-  const month = Number(req.query.month) || now.getMonth() + 1;
-  const year = Number(req.query.year) || now.getFullYear();
+  const current = currentPeriodMonthYear();
+  const month = Number(req.query.month) || current.month;
+  const year = Number(req.query.year) || current.year;
   const budgets = await budgetsService.listBudgets(req.userId!, month, year);
   res.json({ budgets, month, year });
 });

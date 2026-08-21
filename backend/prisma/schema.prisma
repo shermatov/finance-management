@@ -39,6 +39,7 @@ enum BillFrequency {
   ONCE
   WEEKLY
   MONTHLY
+  QUARTERLY
   YEARLY
 }
 
@@ -282,6 +283,11 @@ model Bill {
   // instead of a plain expense — for tracking a debt/liability getting paid down.
   debtAccountId String?
   debtAccount   Account?     @relation("BillDebtAccount", fields: [debtAccountId], references: [id], onDelete: SetNull)
+  // When set, this bill's amount isn't fixed — each time it rolls to a new cycle, it's
+  // recomputed as this rate x (total INCOME in the cycle-length window just before the new
+  // due date). E.g. a QUARTERLY bill at rate 0.04 recalculates as 4% of the last 3 months'
+  // income every time it advances, since income (and so the tax owed) varies month to month.
+  autoComputeRate Decimal? @db.Decimal(5, 4)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 

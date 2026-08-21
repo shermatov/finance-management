@@ -1,9 +1,9 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { periodRangeForMonth } from "../../lib/period.js";
 
 async function spentForCategory(userId: string, categoryId: string, month: number, year: number) {
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 1);
+  const { start, end } = periodRangeForMonth(month, year);
   const result = await prisma.transaction.aggregate({
     where: { userId, categoryId, type: "EXPENSE", date: { gte: start, lt: end } },
     _sum: { amount: true },

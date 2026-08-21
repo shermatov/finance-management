@@ -13,11 +13,12 @@ export interface BillInput {
   name: string;
   amount: number;
   type: "INCOME" | "EXPENSE";
-  frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
+  frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
   dueDate?: string | null;
   categoryId?: string;
   accountId?: string;
   debtAccountId?: string | null;
+  autoComputeRate?: number | null;
 }
 
 function invalidateBillQueries(queryClient: ReturnType<typeof useQueryClient>) {

@@ -75,12 +75,13 @@ export interface Bill {
   name: string;
   amount: string;
   type: "INCOME" | "EXPENSE";
-  frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "YEARLY";
+  frequency: "ONCE" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
   dueDate: string | null;
   status: "UNPAID" | "PAID";
   categoryId: string | null;
   accountId: string | null;
   debtAccountId: string | null;
+  autoComputeRate: string | null;
 }
 
 export interface SavingsGoal {

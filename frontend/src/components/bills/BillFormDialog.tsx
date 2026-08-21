@@ -43,11 +43,12 @@ export function BillFormDialog({
     name: z.string().min(1, t("validation.required")).max(100),
     amount: z.coerce.number().positive(t("validation.enterAmount")),
     type: z.enum(["INCOME", "EXPENSE"]),
-    frequency: z.enum(["ONCE", "WEEKLY", "MONTHLY", "YEARLY"]),
+    frequency: z.enum(["ONCE", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"]),
     dueDate: z.string().optional(),
     accountId: z.string().uuid().optional().or(z.literal("")),
     categoryId: z.string().uuid().optional().or(z.literal("")),
     debtAccountId: z.string().uuid().optional().or(z.literal("")),
+    autoComputeRatePercent: z.coerce.number().min(0).max(100).optional().or(z.literal("")),
   });
   type FormValues = z.infer<typeof schema>;
 
@@ -57,6 +58,7 @@ export function BillFormDialog({
   });
 
   const type = watch("type");
+  const frequency = watch("frequency");
   const filteredCategories = categories?.filter((c) => c.type === type) ?? [];
 
   useEffect(() => {
@@ -72,6 +74,7 @@ export function BillFormDialog({
               accountId: bill.accountId ?? "",
               categoryId: bill.categoryId ?? "",
               debtAccountId: bill.debtAccountId ?? "",
+              autoComputeRatePercent: bill.autoComputeRate ? Number(bill.autoComputeRate) * 100 : "",
             }
           : {
               name: "",
@@ -82,6 +85,7 @@ export function BillFormDialog({
               accountId: "",
               categoryId: "",
               debtAccountId: "",
+              autoComputeRatePercent: "",
             }
       );
     }
@@ -90,12 +94,17 @@ export function BillFormDialog({
   const isSubmitting = createBill.isPending || updateBill.isPending;
 
   const onSubmit = async (values: FormValues) => {
+    const { autoComputeRatePercent, ...rest } = values;
     const input: BillInput = {
-      ...values,
+      ...rest,
       dueDate: values.dueDate || undefined,
       accountId: values.accountId || undefined,
       categoryId: values.categoryId || undefined,
       debtAccountId: values.debtAccountId || undefined,
+      autoComputeRate:
+        autoComputeRatePercent !== "" && autoComputeRatePercent !== undefined
+          ? Number(autoComputeRatePercent) / 100
+          : undefined,
     };
     try {
       if (isEditing && bill) {
@@ -172,6 +181,7 @@ export function BillFormDialog({
                     <SelectItem value="ONCE">{t("bills.oneTime")}</SelectItem>
                     <SelectItem value="WEEKLY">{t("bills.weekly")}</SelectItem>
                     <SelectItem value="MONTHLY">{t("bills.monthly")}</SelectItem>
+                    <SelectItem value="QUARTERLY">{t("bills.quarterly")}</SelectItem>
                     <SelectItem value="YEARLY">{t("bills.yearly")}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -224,6 +234,26 @@ export function BillFormDialog({
               />
             </div>
           </div>
+
+          {frequency !== "ONCE" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="autoComputeRatePercent">
+                {t("bills.form.autoComputeRate", { optional: t("common.optional") })}
+              </Label>
+              <Input
+                id="autoComputeRatePercent"
+                type="number"
+                step="0.01"
+                placeholder="4"
+                {...register("autoComputeRatePercent")}
+              />
+              {errors.autoComputeRatePercent ? (
+                <p className="text-xs text-danger">{errors.autoComputeRatePercent.message}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("bills.form.autoComputeRateHint")}</p>
+              )}
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label>{t("bills.form.debtAccount", { optional: t("common.optional") })}</Label>

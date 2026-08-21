@@ -20,11 +20,25 @@ function barTone(percentage: number) {
   return "bg-success";
 }
 
+// Budget "months" run 15th-to-15th (payday), not calendar 1st-to-1st, matching the dashboard.
+function currentPeriodMonthYear(now: Date) {
+  let month = now.getMonth() + 1;
+  let year = now.getFullYear();
+  if (now.getDate() < 15) {
+    month -= 1;
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+  }
+  return { month, year };
+}
+
 export default function BudgetsPage() {
   const { t } = useTranslation();
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const initialPeriod = currentPeriodMonthYear(new Date());
+  const [month, setMonth] = useState(initialPeriod.month);
+  const [year, setYear] = useState(initialPeriod.year);
 
   const { data: budgets, isLoading } = useBudgets(month, year);
   const deleteBudget = useDeleteBudget();

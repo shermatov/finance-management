@@ -82,7 +82,7 @@ export default function BillsPage() {
     const isOverdue = !isPaid && !!bill.dueDate && new Date(bill.dueDate) < new Date();
     const frequencyLabel = isOnce
       ? t("bills.oneTime")
-      : t(`bills.${bill.frequency.toLowerCase()}` as "bills.weekly" | "bills.monthly" | "bills.yearly");
+      : t(`bills.${bill.frequency.toLowerCase()}` as "bills.weekly" | "bills.monthly" | "bills.quarterly" | "bills.yearly");
     return (
       <Card key={bill.id} className={cn("border-border/60 shadow-soft", isPaid && "opacity-60")}>
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">

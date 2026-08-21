@@ -1,14 +1,8 @@
 import { prisma } from "../../lib/prisma.js";
 import { getUpcomingBills } from "../bills/bills.service.js";
 import { convert } from "../../lib/exchangeRates.js";
+import { periodRange as monthRange } from "../../lib/period.js";
 import type { Currency } from "@prisma/client";
-
-function monthRange(offset = 0) {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - offset, 1);
-  const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
-  return { start, end };
-}
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));

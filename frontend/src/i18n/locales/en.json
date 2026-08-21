@@ -375,6 +375,7 @@
     "oneTime": "One-time",
     "weekly": "Weekly",
     "monthly": "Monthly",
+    "quarterly": "Quarterly",
     "yearly": "Yearly",
     "markAsPaid": "Mark as paid",
     "markAsReceived": "Mark as received",
@@ -406,6 +407,8 @@
       "accountHint": "Set this to auto-record a transaction when marked paid.",
       "debtAccount": "Pay down debt in ({{optional}})",
       "debtAccountHint": "If this bill is a debt you owe, pick the debt/liability account here. Marking it paid will transfer the amount from Account above into this one, instead of a plain expense.",
+      "autoComputeRate": "Auto-calculate as % of income ({{optional}})",
+      "autoComputeRateHint": "Each time this bill's cycle rolls over, its amount is recalculated as this % of your total income over the last cycle (e.g. the last 3 months for Quarterly) — useful for something like tax that depends on variable income.",
       "create": "Create bill"
     }
   },
