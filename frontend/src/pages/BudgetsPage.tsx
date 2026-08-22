@@ -77,7 +77,7 @@ export default function BudgetsPage() {
     }
   };
 
-  const totalBudgeted = (budgets ?? []).reduce((sum, b) => sum + Number(b.amount), 0);
+  const totalBudgeted = (budgets ?? []).reduce((sum, b) => sum + b.effectiveAmount, 0);
   const totalSpent = (budgets ?? []).reduce((sum, b) => sum + b.spent, 0);
 
   return (
@@ -152,10 +152,25 @@ export default function BudgetsPage() {
                     </div>
                   </div>
 
+                  {budget.carriedOver > 0 && (
+                    <div className="flex items-start gap-1.5 rounded-lg border border-warning/40 bg-warning/10 px-2.5 py-1.5 text-xs text-warning">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        {t("budgets.carriedOver", {
+                          amount: formatNumber(budget.carriedOver),
+                          original: formatNumber(budget.amount),
+                          effective: formatNumber(budget.effectiveAmount),
+                        })}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium tabular-nums">{formatNumber(budget.spent)}</span>
-                      <span className="text-muted-foreground">{t("budgets.ofAmount", { amount: formatNumber(budget.amount) })}</span>
+                      <span className="text-muted-foreground">
+                        {t("budgets.ofAmount", { amount: formatNumber(budget.effectiveAmount) })}
+                      </span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-secondary">
                       <div

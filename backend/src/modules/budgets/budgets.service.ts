@@ -49,6 +49,40 @@ async function spentForOther(userId: string, otherCategoryId: string, month: num
   return Number(result._sum.amount ?? 0);
 }
 
+async function spentForBudget(userId: string, categoryId: string, categoryName: string, month: number, year: number) {
+  return categoryName === "Other"
+    ? spentForOther(userId, categoryId, month, year)
+    : spentForCategory(userId, categoryId, month, year);
+}
+
+/** Walks a category's budget history in chronological order up to (month, year), carrying any
+ * overspend from one month into a reduced limit for the next — going over isn't just forgotten
+ * at midnight, it eats into what you have available next month for that same category. Returns
+ * the effective (possibly reduced) limit for the requested month and how much was carried in. */
+async function effectiveLimit(
+  userId: string,
+  categoryId: string,
+  categoryName: string,
+  month: number,
+  year: number
+): Promise<{ effectiveAmount: number; carriedOver: number }> {
+  const history = await prisma.budget.findMany({
+    where: { userId, categoryId, OR: [{ year: { lt: year } }, { year, month: { lte: month } }] },
+    orderBy: [{ year: "asc" }, { month: "asc" }],
+  });
+
+  let carry = 0;
+  for (const b of history) {
+    const effective = Number(b.amount) - carry;
+    if (b.month === month && b.year === year) {
+      return { effectiveAmount: effective, carriedOver: carry };
+    }
+    const spent = await spentForBudget(userId, categoryId, categoryName, b.month, b.year);
+    carry = Math.max(0, spent - effective);
+  }
+  return { effectiveAmount: 0, carriedOver: 0 };
+}
+
 export async function listBudgets(userId: string, month: number, year: number) {
   const budgets = await prisma.budget.findMany({
     where: { userId, month, year },
@@ -58,16 +92,21 @@ export async function listBudgets(userId: string, month: number, year: number) {
 
   return Promise.all(
     budgets.map(async (budget) => {
-      const spent =
-        budget.category.name === "Other"
-          ? await spentForOther(userId, budget.categoryId, month, year)
-          : await spentForCategory(userId, budget.categoryId, month, year);
-      const amount = Number(budget.amount);
+      const spent = await spentForBudget(userId, budget.categoryId, budget.category.name, month, year);
+      const { effectiveAmount, carriedOver } = await effectiveLimit(
+        userId,
+        budget.categoryId,
+        budget.category.name,
+        month,
+        year
+      );
       return {
         ...budget,
         spent,
-        remaining: amount - spent,
-        percentage: amount > 0 ? Math.round((spent / amount) * 100) : 0,
+        effectiveAmount,
+        carriedOver,
+        remaining: effectiveAmount - spent,
+        percentage: effectiveAmount > 0 ? Math.round((spent / effectiveAmount) * 100) : spent > 0 ? 100 : 0,
       };
     })
   );

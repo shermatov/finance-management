@@ -52,6 +52,8 @@ export interface Budget {
   month: number;
   year: number;
   spent: number;
+  effectiveAmount: number;
+  carriedOver: number;
   remaining: number;
   percentage: number;
 }

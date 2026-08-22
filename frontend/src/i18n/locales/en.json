@@ -289,6 +289,7 @@
     "ofAmount": "of {{amount}}",
     "overBudget": "{{amount}} over budget",
     "remaining": "{{amount}} remaining",
+    "carriedOver": "{{amount}} carried over from last month's overspend — limit reduced from {{original}} to {{effective}}",
     "deleteTitle": "Delete this budget?",
     "deleteDescription": "This only removes the limit — past transactions are unaffected.",
     "deleted": "Budget deleted",
