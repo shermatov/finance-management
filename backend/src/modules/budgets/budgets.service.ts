@@ -1,14 +1,10 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { periodRangeForMonth } from "../../lib/period.js";
 
-async function spentForCategory(userId: string, categoryId: string, month: number, year: number) {
-  const { start, end } = periodRangeForMonth(month, year);
-  const result = await prisma.transaction.aggregate({
-    where: { userId, categoryId, type: "EXPENSE", date: { gte: start, lt: end } },
-    _sum: { amount: true },
-  });
-  return Number(result._sum.amount ?? 0);
+function categoryWhere(userId: string, categoryId: string): Prisma.TransactionWhereInput {
+  return { userId, categoryId, type: "EXPENSE" };
 }
 
 /** Categories that are their own significant, deliberately-tracked concept and should never
@@ -17,14 +13,17 @@ async function spentForCategory(userId: string, categoryId: string, month: numbe
 const NEVER_ROLLS_INTO_OTHER = ["Rent", "Долг", "Налог", "Той, кошумча"];
 
 /** The "Other" budget (matched by category name) is a rollup rather than tracking its own
- * category's transactions: it sums every EXPENSE transaction whose category doesn't have its
- * own budget line this month and isn't one of the always-separate categories above (plus
+ * category's transactions: it matches every EXPENSE transaction whose category doesn't have
+ * its own budget line this month and isn't one of the always-separate categories above (plus
  * anything uncategorized). That way specific categories like "Present" or "Travel" can stay
  * distinctly labeled on transactions while still counting toward the Other total, without
  * needing to recategorize anything. */
-async function spentForOther(userId: string, otherCategoryId: string, month: number, year: number) {
-  const { start, end } = periodRangeForMonth(month, year);
-
+async function otherWhere(
+  userId: string,
+  otherCategoryId: string,
+  month: number,
+  year: number
+): Promise<Prisma.TransactionWhereInput> {
   const [otherBudgets, neverRollsCategories] = await Promise.all([
     prisma.budget.findMany({
       where: { userId, month, year, categoryId: { not: otherCategoryId } },
@@ -37,22 +36,25 @@ async function spentForOther(userId: string, otherCategoryId: string, month: num
   ]);
   const excludedCategoryIds = [...otherBudgets.map((b) => b.categoryId), ...neverRollsCategories.map((c) => c.id)];
 
-  const result = await prisma.transaction.aggregate({
-    where: {
-      userId,
-      type: "EXPENSE",
-      date: { gte: start, lt: end },
-      OR: [{ categoryId: null }, { categoryId: { notIn: excludedCategoryIds } }],
-    },
-    _sum: { amount: true },
-  });
-  return Number(result._sum.amount ?? 0);
+  return {
+    userId,
+    type: "EXPENSE",
+    OR: [{ categoryId: null }, { categoryId: { notIn: excludedCategoryIds } }],
+  };
+}
+
+async function whereForBudget(userId: string, categoryId: string, categoryName: string, month: number, year: number) {
+  return categoryName === "Other" ? otherWhere(userId, categoryId, month, year) : categoryWhere(userId, categoryId);
 }
 
 async function spentForBudget(userId: string, categoryId: string, categoryName: string, month: number, year: number) {
-  return categoryName === "Other"
-    ? spentForOther(userId, categoryId, month, year)
-    : spentForCategory(userId, categoryId, month, year);
+  const { start, end } = periodRangeForMonth(month, year);
+  const where = await whereForBudget(userId, categoryId, categoryName, month, year);
+  const result = await prisma.transaction.aggregate({
+    where: { ...where, date: { gte: start, lt: end } },
+    _sum: { amount: true },
+  });
+  return Number(result._sum.amount ?? 0);
 }
 
 /** Walks a category's budget history in chronological order up to (month, year), carrying any
@@ -81,6 +83,23 @@ async function effectiveLimit(
     carry = Math.max(0, spent - effective);
   }
   return { effectiveAmount: 0, carriedOver: 0 };
+}
+
+/** The exact transactions behind a budget's "spent" figure — uses the same matching logic as
+ * spentForBudget (including the Other rollup's cross-category matching), so the list always
+ * adds up to precisely what the budget card shows as spent. */
+export async function listBudgetTransactions(userId: string, budgetId: string) {
+  const budget = await prisma.budget.findFirst({ where: { id: budgetId, userId }, include: { category: true } });
+  if (!budget) throw ApiError.notFound("Budget not found");
+
+  const { start, end } = periodRangeForMonth(budget.month, budget.year);
+  const where = await whereForBudget(userId, budget.categoryId, budget.category.name, budget.month, budget.year);
+
+  return prisma.transaction.findMany({
+    where: { ...where, date: { gte: start, lt: end } },
+    include: { category: true, account: true },
+    orderBy: { date: "desc" },
+  });
 }
 
 export async function listBudgets(userId: string, month: number, year: number) {

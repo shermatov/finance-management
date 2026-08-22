@@ -11,6 +11,11 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
   res.json({ budgets, month, year });
 });
 
+export const transactions = asyncHandler(async (req: Request, res: Response) => {
+  const transactions = await budgetsService.listBudgetTransactions(req.userId!, req.params.id);
+  res.json({ transactions });
+});
+
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const budget = await budgetsService.createBudget(req.userId!, req.body);
   res.status(201).json({ budget });

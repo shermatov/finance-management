@@ -290,6 +290,11 @@
     "overBudget": "{{amount}} ашып кетти",
     "remaining": "{{amount}} калды",
     "carriedOver": "Өткөн айдагы ашыкча чыгымдан {{amount}} өттү — чеги {{original}}дан {{effective}}га төмөндөдү",
+    "viewTransactions": "Бул категориянын транзакцияларын көрүү",
+    "transactionsDialog": {
+      "title": "{{category}} транзакциялары",
+      "emptyTitle": "Бул мезгилде транзакциялар жок"
+    },
     "deleteTitle": "Бул бюджетти өчүрөсүзбү?",
     "deleteDescription": "Бул чекти гана өчүрөт — мурунку транзакциялар өзгөрбөйт.",
     "deleted": "Бюджет өчүрүлдү",

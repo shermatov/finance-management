@@ -292,6 +292,11 @@
     "overBudget": "Превышение на {{amount}}",
     "remaining": "Осталось {{amount}}",
     "carriedOver": "{{amount}} перенесено из-за перерасхода в прошлом месяце — лимит снижен с {{original}} до {{effective}}",
+    "viewTransactions": "Показать транзакции этой категории",
+    "transactionsDialog": {
+      "title": "Транзакции: {{category}}",
+      "emptyTitle": "За этот период транзакций нет"
+    },
     "deleteTitle": "Удалить этот бюджет?",
     "deleteDescription": "Это только удалит лимит — прошлые транзакции не изменятся.",
     "deleted": "Бюджет удалён",

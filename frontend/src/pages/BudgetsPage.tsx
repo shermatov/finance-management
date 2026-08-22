@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { BudgetFormDialog } from "@/components/budgets/BudgetFormDialog";
+import { BudgetTransactionsDialog } from "@/components/budgets/BudgetTransactionsDialog";
 import { useBudgets, useDeleteBudget } from "@/hooks/useBudgets";
 import { formatNumber } from "@/lib/format";
 import { getErrorMessage } from "@/lib/api";
@@ -41,6 +42,7 @@ export default function BudgetsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [deletingBudget, setDeletingBudget] = useState<Budget | null>(null);
+  const [viewingBudget, setViewingBudget] = useState<Budget | null>(null);
 
   const shiftMonth = (delta: number) => {
     let m = month + delta;
@@ -139,8 +141,15 @@ export default function BudgetsPage() {
                 <CardContent className="space-y-3 p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: budget.category.color }} />
-                      <span className="truncate text-sm font-medium">{budget.category.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setViewingBudget(budget)}
+                        className="flex min-w-0 items-center gap-2 hover:underline"
+                        title={t("budgets.viewTransactions") ?? undefined}
+                      >
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: budget.category.color }} />
+                        <span className="truncate text-sm font-medium">{budget.category.name}</span>
+                      </button>
                       {budget.carriedOver > 0 && (
                         <button
                           type="button"
@@ -221,6 +230,11 @@ export default function BudgetsPage() {
         month={month}
         year={year}
         usedCategoryIds={(budgets ?? []).map((b) => b.categoryId)}
+      />
+      <BudgetTransactionsDialog
+        open={!!viewingBudget}
+        onOpenChange={(open) => !open && setViewingBudget(null)}
+        budget={viewingBudget}
       />
       <ConfirmDialog
         open={!!deletingBudget}

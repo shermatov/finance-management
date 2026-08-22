@@ -1,12 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { Budget } from "@/types";
+import type { Budget, Transaction } from "@/types";
 
 export function useBudgets(month: number, year: number) {
   return useQuery({
     queryKey: ["budgets", month, year],
     queryFn: async () =>
       (await api.get<{ budgets: Budget[] }>("/budgets", { params: { month, year } })).data.budgets,
+  });
+}
+
+export function useBudgetTransactions(budgetId: string | null) {
+  return useQuery({
+    queryKey: ["budget-transactions", budgetId],
+    queryFn: async () =>
+      (await api.get<{ transactions: Transaction[] }>(`/budgets/${budgetId}/transactions`)).data.transactions,
+    enabled: !!budgetId,
   });
 }
 
