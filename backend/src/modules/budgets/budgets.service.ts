@@ -11,6 +11,32 @@ async function spentForCategory(userId: string, categoryId: string, month: numbe
   return Number(result._sum.amount ?? 0);
 }
 
+/** The "Other" budget (matched by category name) is a rollup rather than tracking its own
+ * category's transactions: it sums every EXPENSE transaction whose category doesn't have its
+ * own budget line this month (plus anything uncategorized). That way specific categories like
+ * "Present" or "Travel" can stay distinctly labeled on transactions while still counting
+ * toward the Other total, without needing to recategorize anything. */
+async function spentForOther(userId: string, otherCategoryId: string, month: number, year: number) {
+  const { start, end } = periodRangeForMonth(month, year);
+
+  const otherBudgets = await prisma.budget.findMany({
+    where: { userId, month, year, categoryId: { not: otherCategoryId } },
+    select: { categoryId: true },
+  });
+  const excludedCategoryIds = otherBudgets.map((b) => b.categoryId);
+
+  const result = await prisma.transaction.aggregate({
+    where: {
+      userId,
+      type: "EXPENSE",
+      date: { gte: start, lt: end },
+      OR: [{ categoryId: null }, { categoryId: { notIn: excludedCategoryIds } }],
+    },
+    _sum: { amount: true },
+  });
+  return Number(result._sum.amount ?? 0);
+}
+
 export async function listBudgets(userId: string, month: number, year: number) {
   const budgets = await prisma.budget.findMany({
     where: { userId, month, year },
@@ -20,7 +46,10 @@ export async function listBudgets(userId: string, month: number, year: number) {
 
   return Promise.all(
     budgets.map(async (budget) => {
-      const spent = await spentForCategory(userId, budget.categoryId, month, year);
+      const spent =
+        budget.category.name === "Other"
+          ? await spentForOther(userId, budget.categoryId, month, year)
+          : await spentForCategory(userId, budget.categoryId, month, year);
       const amount = Number(budget.amount);
       return {
         ...budget,
