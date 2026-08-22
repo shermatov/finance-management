@@ -21,16 +21,20 @@ function lookbackMonths(frequency: Frequency): number {
   return 1;
 }
 
-/** Recomputes an auto-compute bill's amount as `rate x total income` in the window immediately
- * before `asOf`, sized to the bill's own cycle length — since income varies month to month,
- * this is what makes a variable-income tax bill actually track what's really owed each cycle. */
+/** Recomputes an auto-compute bill's amount as `rate x total income` over the calendar
+ * period preceding `asOf`'s month, sized to the bill's own cycle length — since income varies
+ * month to month, this is what makes a variable-income tax bill actually track what's really
+ * owed each cycle. The window is aligned to calendar-month boundaries (not `asOf`'s exact day),
+ * so e.g. a QUARTERLY bill due on the 20th (matching official tax deadlines, which fall 20 days
+ * after each calendar quarter ends) still sums a clean Jul 1 - Oct 1 quarter rather than a
+ * rolling Jul 20 - Oct 20 window offset by the due day. */
 async function computeAutoAmount(userId: string, rate: number, asOf: Date, frequency: Frequency): Promise<number> {
   const months = lookbackMonths(frequency);
-  const windowStart = new Date(asOf);
-  windowStart.setMonth(windowStart.getMonth() - months);
+  const windowEnd = new Date(asOf.getFullYear(), asOf.getMonth(), 1);
+  const windowStart = new Date(asOf.getFullYear(), asOf.getMonth() - months, 1);
 
   const result = await prisma.transaction.aggregate({
-    where: { userId, type: "INCOME", date: { gte: windowStart, lt: asOf } },
+    where: { userId, type: "INCOME", date: { gte: windowStart, lt: windowEnd } },
     _sum: { amount: true },
   });
   return Number(result._sum.amount ?? 0) * rate;
