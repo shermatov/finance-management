@@ -11,19 +11,31 @@ async function spentForCategory(userId: string, categoryId: string, month: numbe
   return Number(result._sum.amount ?? 0);
 }
 
+/** Categories that are their own significant, deliberately-tracked concept and should never
+ * roll into "Other" even though they don't have their own budget line (debt, tax, a wedding
+ * fund, rent). Matched by name, same as how the "Other" budget itself is identified. */
+const NEVER_ROLLS_INTO_OTHER = ["Rent", "Долг", "Налог", "Той, кошумча"];
+
 /** The "Other" budget (matched by category name) is a rollup rather than tracking its own
  * category's transactions: it sums every EXPENSE transaction whose category doesn't have its
- * own budget line this month (plus anything uncategorized). That way specific categories like
- * "Present" or "Travel" can stay distinctly labeled on transactions while still counting
- * toward the Other total, without needing to recategorize anything. */
+ * own budget line this month and isn't one of the always-separate categories above (plus
+ * anything uncategorized). That way specific categories like "Present" or "Travel" can stay
+ * distinctly labeled on transactions while still counting toward the Other total, without
+ * needing to recategorize anything. */
 async function spentForOther(userId: string, otherCategoryId: string, month: number, year: number) {
   const { start, end } = periodRangeForMonth(month, year);
 
-  const otherBudgets = await prisma.budget.findMany({
-    where: { userId, month, year, categoryId: { not: otherCategoryId } },
-    select: { categoryId: true },
-  });
-  const excludedCategoryIds = otherBudgets.map((b) => b.categoryId);
+  const [otherBudgets, neverRollsCategories] = await Promise.all([
+    prisma.budget.findMany({
+      where: { userId, month, year, categoryId: { not: otherCategoryId } },
+      select: { categoryId: true },
+    }),
+    prisma.category.findMany({
+      where: { userId, name: { in: NEVER_ROLLS_INTO_OTHER } },
+      select: { id: true },
+    }),
+  ]);
+  const excludedCategoryIds = [...otherBudgets.map((b) => b.categoryId), ...neverRollsCategories.map((c) => c.id)];
 
   const result = await prisma.transaction.aggregate({
     where: {
