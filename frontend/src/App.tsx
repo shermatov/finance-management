@@ -13,6 +13,7 @@ import CategoriesPage from "@/pages/CategoriesPage";
 import BillsPage from "@/pages/BillsPage";
 import GoalsPage from "@/pages/GoalsPage";
 import BudgetsPage from "@/pages/BudgetsPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import PlaceholderPage from "@/pages/PlaceholderPage";
 import NotFoundPage from "@/pages/NotFoundPage";
@@ -35,7 +36,7 @@ function App() {
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/bills" element={<BillsPage />} />
-          <Route path="/analytics" element={<PlaceholderPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/calendar" element={<PlaceholderPage />} />
           <Route path="/reports" element={<PlaceholderPage />} />
           <Route path="/settings" element={<SettingsPage />} />

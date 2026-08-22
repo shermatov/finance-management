@@ -140,6 +140,28 @@ export interface DashboardSummary {
   accounts: Account[];
 }
 
+export interface AccountLegendItem {
+  name: string;
+  color: string;
+}
+
+export interface AnalyticsOverview {
+  baseCurrency: Currency;
+  cashFlow: CashFlowPoint[];
+  balanceHistory: Array<Record<string, number | string>>;
+  accounts: AccountLegendItem[];
+  debtProgress: Array<Record<string, number | string>>;
+  debtAccounts: AccountLegendItem[];
+}
+
+export interface CategoryBreakdownResponse {
+  month: number;
+  year: number;
+  baseCurrency: Currency;
+  total: number;
+  breakdown: CategoryBreakdownItem[];
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

@@ -28,7 +28,7 @@ export const navItems: NavItem[] = [
   { labelKey: "nav.budgets", path: "/budgets", icon: PiggyBank },
   { labelKey: "nav.goals", path: "/goals", icon: Target },
   { labelKey: "nav.bills", path: "/bills", icon: Receipt },
-  { labelKey: "nav.analytics", path: "/analytics", icon: BarChart3, soon: true },
+  { labelKey: "nav.analytics", path: "/analytics", icon: BarChart3 },
   { labelKey: "nav.calendar", path: "/calendar", icon: CalendarDays, soon: true },
   { labelKey: "nav.reports", path: "/reports", icon: FileText, soon: true },
   { labelKey: "nav.settings", path: "/settings", icon: Settings },

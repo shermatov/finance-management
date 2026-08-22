@@ -418,6 +418,27 @@
       "create": "Create bill"
     }
   },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Charts and trends across your accounts, spending, and debt.",
+    "tabs": {
+      "category": "Spending by category",
+      "cashflow": "Income vs expense",
+      "balances": "Account balances",
+      "debt": "Debt payoff"
+    },
+    "accountBalance": {
+      "title": "Account Balances Over Time",
+      "emptyTitle": "No accounts yet",
+      "emptyDescription": "Add an account to start tracking its balance history."
+    },
+    "debtProgress": {
+      "title": "Debt Payoff Progress",
+      "total": "Total debt",
+      "emptyTitle": "No debt to track",
+      "emptyDescription": "None of your accounts are currently in the negative — nothing to pay off."
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your profile, security, and preferences.",
