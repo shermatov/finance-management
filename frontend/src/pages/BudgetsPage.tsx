@@ -14,12 +14,6 @@ import { getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Budget } from "@/types";
 
-function barTone(percentage: number) {
-  if (percentage >= 100) return "bg-danger";
-  if (percentage >= 80) return "bg-warning";
-  return "bg-success";
-}
-
 // Budget "months" run 15th-to-15th (payday), not calendar 1st-to-1st, matching the dashboard.
 function currentPeriodMonthYear(now: Date) {
   let month = now.getMonth() + 1;
@@ -42,6 +36,7 @@ export default function BudgetsPage() {
 
   const { data: budgets, isLoading } = useBudgets(month, year);
   const deleteBudget = useDeleteBudget();
+  const [expandedCarryOverId, setExpandedCarryOverId] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -134,6 +129,11 @@ export default function BudgetsPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {budgets.map((budget) => {
             const overBudget = budget.percentage >= 100;
+            const nominalAmount = Number(budget.amount);
+            const yellowPct = nominalAmount > 0 ? Math.min(100, (budget.carriedOver / nominalAmount) * 100) : 0;
+            const greenPct =
+              nominalAmount > 0 ? Math.min(100 - yellowPct, (budget.spent / nominalAmount) * 100) : 0;
+            const showCarryOverDetail = expandedCarryOverId === budget.id;
             return (
               <Card key={budget.id} className="border-border/60 shadow-soft">
                 <CardContent className="space-y-3 p-5">
@@ -141,6 +141,20 @@ export default function BudgetsPage() {
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: budget.category.color }} />
                       <span className="truncate text-sm font-medium">{budget.category.name}</span>
+                      {budget.carriedOver > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedCarryOverId(showCarryOverDetail ? null : budget.id)}
+                          className="shrink-0 text-warning hover:opacity-70"
+                          aria-label={t("budgets.carriedOver", {
+                            amount: formatNumber(budget.carriedOver),
+                            original: formatNumber(budget.amount),
+                            effective: formatNumber(budget.effectiveAmount),
+                          }) ?? undefined}
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(budget)}>
@@ -152,7 +166,7 @@ export default function BudgetsPage() {
                     </div>
                   </div>
 
-                  {budget.carriedOver > 0 && (
+                  {showCarryOverDetail && (
                     <div className="flex items-start gap-1.5 rounded-lg border border-warning/40 bg-warning/10 px-2.5 py-1.5 text-xs text-warning">
                       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                       <span>
@@ -172,12 +186,20 @@ export default function BudgetsPage() {
                         {t("budgets.ofAmount", { amount: formatNumber(budget.effectiveAmount) })}
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={cn("h-full rounded-full transition-all", barTone(budget.percentage))}
-                        style={{ width: `${Math.min(100, budget.percentage)}%` }}
-                      />
-                    </div>
+                    {overBudget ? (
+                      <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                        <div className="h-full w-full rounded-full bg-danger transition-all" />
+                      </div>
+                    ) : (
+                      <div className="flex h-2 overflow-hidden rounded-full bg-secondary">
+                        {yellowPct > 0 && (
+                          <div className="h-full bg-warning transition-all" style={{ width: `${yellowPct}%` }} />
+                        )}
+                        {greenPct > 0 && (
+                          <div className="h-full bg-success transition-all" style={{ width: `${greenPct}%` }} />
+                        )}
+                      </div>
+                    )}
                     <p className={cn("flex items-center gap-1 text-xs", overBudget ? "text-danger" : "text-muted-foreground")}>
                       {overBudget && <AlertTriangle className="h-3 w-3" />}
                       {overBudget
