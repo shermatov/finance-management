@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, Coins, Landmark } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, HandCoins, Landmark } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDashboardSummary } from "@/hooks/useDashboard";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -38,7 +38,7 @@ export default function DashboardPage() {
         <StatCard index={0} label={t("dashboard.currentBalance")} value={formatNumber(data.currentBalance)} icon={Wallet} tone="primary" />
         <StatCard index={1} label={t("dashboard.monthlyIncome")} value={formatNumber(data.monthlyIncome)} icon={TrendingUp} tone="success" />
         <StatCard index={2} label={t("dashboard.monthlyExpenses")} value={formatNumber(data.monthlyExpenses)} icon={TrendingDown} tone="danger" />
-        <StatCard index={3} label={t("dashboard.savings")} value={formatNumber(data.savings)} icon={Coins} tone="warning" />
+        <StatCard index={3} label={t("dashboard.savings")} value={formatNumber(data.savings)} icon={HandCoins} tone="warning" />
         <StatCard index={4} label={t("dashboard.netWorth")} value={formatNumber(data.netWorth)} icon={Landmark} tone="primary" />
       </div>
 

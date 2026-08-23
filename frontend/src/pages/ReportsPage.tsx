@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Coins, Receipt, Landmark, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, HandCoins, Receipt, Landmark, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,7 +80,7 @@ export default function ReportsPage() {
               index={2}
               label={t("reports.net")}
               value={formatNumber(data.net)}
-              icon={Coins}
+              icon={HandCoins}
               tone={data.net >= 0 ? "success" : "danger"}
             />
             <StatCard index={3} label={t("reports.taxPaid")} value={formatNumber(data.taxPaid)} icon={Receipt} tone="warning" />
