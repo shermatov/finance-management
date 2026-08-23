@@ -1,10 +1,11 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { convert } from "../../lib/exchangeRates.js";
+import type { Bill } from "@prisma/client";
 
-type Frequency = "ONCE" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
+export type Frequency = "ONCE" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
-function advance(date: Date, frequency: Frequency): Date {
+export function advance(date: Date, frequency: Frequency): Date {
   const next = new Date(date);
   if (frequency === "WEEKLY") next.setDate(next.getDate() + 7);
   else if (frequency === "MONTHLY") next.setMonth(next.getMonth() + 1);
@@ -43,14 +44,7 @@ async function computeAutoAmount(userId: string, rate: number, asOf: Date, frequ
 /** Rolls a recurring bill's dueDate forward past "now", resetting status for the new cycle. One-off bills
  * and bills with no due date (a "pay later" backlog item) are left alone — there's nothing to roll forward.
  * Auto-compute bills (see `autoComputeRate`) get their amount recalculated for the new cycle too. */
-async function rollForwardIfPast(bill: {
-  id: string;
-  userId: string;
-  dueDate: Date | null;
-  frequency: Frequency;
-  status: string;
-  autoComputeRate: unknown;
-}) {
+async function rollForwardIfPast(bill: Bill) {
   if (bill.frequency === "ONCE" || !bill.dueDate || bill.dueDate >= new Date()) return bill;
 
   let dueDate = bill.dueDate;

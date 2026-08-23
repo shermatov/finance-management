@@ -439,6 +439,20 @@
       "emptyDescription": "None of your accounts are currently in the negative — nothing to pay off."
     }
   },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Bill due dates and transactions, day by day.",
+    "legend": {
+      "income": "Income",
+      "expense": "Expense",
+      "bill": "Bill due"
+    },
+    "dayDialog": {
+      "bills": "Bills due",
+      "transactions": "Transactions",
+      "empty": "Nothing on this day"
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your profile, security, and preferences.",

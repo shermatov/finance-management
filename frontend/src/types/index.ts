@@ -162,6 +162,22 @@ export interface CategoryBreakdownResponse {
   breakdown: CategoryBreakdownItem[];
 }
 
+export interface CalendarBillOccurrence {
+  billId: string;
+  name: string;
+  amount: number;
+  type: "INCOME" | "EXPENSE";
+  status: "UNPAID" | "PAID";
+  date: string;
+}
+
+export interface CalendarMonthResponse {
+  month: number;
+  year: number;
+  transactions: Transaction[];
+  bills: CalendarBillOccurrence[];
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

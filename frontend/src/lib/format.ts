@@ -6,7 +6,7 @@ const INTL_LOCALES: Record<string, string> = {
   ky: "ky-KG",
 };
 
-function currentLocale(): string {
+export function currentLocale(): string {
   return INTL_LOCALES[i18n.language] ?? "en-US";
 }
 
