@@ -41,19 +41,6 @@ export function useUpdateAccount() {
   });
 }
 
-export function useDeleteAccount() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/accounts/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-    },
-  });
-}
-
 export function useTransferBetweenAccounts() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -11,10 +11,6 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
-export function getAccessToken() {
-  return accessToken;
-}
-
 /** Fired when the session can no longer be refreshed; AuthProvider listens and logs the user out. */
 export const AUTH_EXPIRED_EVENT = "auth:expired";
 
