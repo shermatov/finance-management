@@ -111,16 +111,13 @@ export interface CategoryBreakdownItem {
   amount: number;
 }
 
-export interface HealthFactor {
-  score: number;
-  value: number;
-}
-
 export interface FinancialHealthBreakdown {
-  savingsRate: HealthFactor;
-  debtToIncome: HealthFactor;
-  emergencyFund: HealthFactor;
-  trend: HealthFactor;
+  spendLessThanIncome: { score: number; ratio: number };
+  payBillsOnTime: { score: number; onTime: number; total: number };
+  liquidSavings: { score: number; monthsCovered: number };
+  longTermSavings: { score: number; ratio: number };
+  manageableDebt: { score: number; ratio: number };
+  planAhead: { score: number; onTrack: number; total: number };
 }
 
 export interface DashboardSummary {

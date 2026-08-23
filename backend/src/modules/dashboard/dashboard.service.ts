@@ -1,75 +1,97 @@
 import { prisma } from "../../lib/prisma.js";
-import { getUpcomingBills } from "../bills/bills.service.js";
+import { getUpcomingBills, listBills } from "../bills/bills.service.js";
+import { listBudgets } from "../budgets/budgets.service.js";
 import { convert } from "../../lib/exchangeRates.js";
-import { periodRange as monthRange } from "../../lib/period.js";
+import { periodRange as monthRange, currentPeriodMonthYear } from "../../lib/period.js";
 import type { Currency } from "@prisma/client";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-interface HealthFactor {
-  score: number;
-  value: number;
+/** Maps `ratio` linearly onto 0-100, where `low` -> 0 and `high` -> 100, clamped at both ends. */
+function ratioScore(ratio: number, low: number, high: number): number {
+  return Math.round(clamp(((ratio - low) / (high - low)) * 100, 0, 100));
 }
 
 /**
- * Composite score across four factors, weighted by how much each one actually
- * predicts financial trouble: savings rate (30%), debt load relative to income (25%),
- * cash buffer vs. a 3-month emergency fund (25%), and whether the last 3 months are
- * trending better or worse (20%). Each sub-score maps its raw ratio onto 0-100 before
- * weighting, so one bad factor can't be fully masked by one good one.
+ * Modeled on the Financial Health Network's FinHealth Score — a widely-used framework
+ * that scores financial health across four pillars (Spend, Save, Borrow, Plan), each with
+ * two concrete indicators. This uses 6 of its 8 indicators; a prime credit score and
+ * insurance coverage aren't things this app has data for, so they're left out rather than
+ * faked. Each pillar gets equal weight (25%); a pillar's weight splits evenly across its
+ * two indicators when both are available.
  */
 function computeFinancialHealth(params: {
-  accounts: { balance: number }[];
   monthlyIncome: number;
   monthlyExpenses: number;
-  cashFlow: { income: number; expenses: number; net: number }[];
+  liquidCash: number;
+  totalDebt: number;
+  bills: { status: string; dueDate: Date | null }[];
+  goals: { currentAmount: number; targetAmount: number | null }[];
+  budgets: { spent: number; effectiveAmount: number }[];
 }) {
-  const { accounts, monthlyIncome, monthlyExpenses, cashFlow } = params;
+  const { monthlyIncome, monthlyExpenses, liquidCash, totalDebt, bills, goals, budgets } = params;
 
-  const savingsRate = monthlyIncome > 0 ? (monthlyIncome - monthlyExpenses) / monthlyIncome : 0;
-  const savingsRateFactor: HealthFactor = {
-    score: Math.round(clamp(((savingsRate + 0.2) / 0.4) * 100, 0, 100)),
-    value: savingsRate,
+  // SPEND — spending less than you earn this month. -20% to +20% savings rate maps to 0-100.
+  const savingsRatio = monthlyIncome > 0 ? (monthlyIncome - monthlyExpenses) / monthlyIncome : 0;
+  const spendLessThanIncome = { score: ratioScore(savingsRatio, -0.2, 0.2), ratio: savingsRatio };
+
+  // SPEND — paying bills on time. Only bills with a due date can be judged; a bill with
+  // none is a "pay later" backlog item, not something with an on-time/late verdict. Note:
+  // recurring bills silently roll their due date forward past "now" whether or not they
+  // were actually paid (see bills.service.ts), so this mostly catches one-off bills left
+  // unpaid past their date — a real but partial signal, not a complete payment history.
+  const datedBills = bills.filter((b) => b.dueDate !== null);
+  const overdue = datedBills.filter((b) => b.status === "UNPAID" && b.dueDate! < new Date());
+  const onTime = datedBills.length - overdue.length;
+  const payBillsOnTime = {
+    score: datedBills.length === 0 ? 100 : Math.round((onTime / datedBills.length) * 100),
+    onTime,
+    total: datedBills.length,
   };
 
-  const totalDebt = accounts.filter((a) => a.balance < 0).reduce((sum, a) => sum + Math.abs(a.balance), 0);
-  const annualIncomeEstimate = monthlyIncome * 12;
-  const debtToIncomeRatio = annualIncomeEstimate > 0 ? totalDebt / annualIncomeEstimate : totalDebt > 0 ? 1 : 0;
-  const debtFactor: HealthFactor = {
-    score: Math.round(clamp(100 - debtToIncomeRatio * 100, 0, 100)),
-    value: debtToIncomeRatio,
-  };
-
-  const liquidCash = accounts.filter((a) => a.balance > 0).reduce((sum, a) => sum + a.balance, 0);
+  // SAVE — liquid savings as a buffer for the unexpected. 3 months of expenses covered maps to 100.
   const monthsCovered = monthlyExpenses > 0 ? liquidCash / monthlyExpenses : liquidCash > 0 ? 3 : 0;
-  const emergencyFundFactor: HealthFactor = {
-    score: Math.round(clamp((monthsCovered / 3) * 100, 0, 100)),
-    value: monthsCovered,
-  };
+  const liquidSavings = { score: Math.round(clamp((monthsCovered / 3) * 100, 0, 100)), monthsCovered };
 
-  const recentMonths = cashFlow.slice(-3);
-  const avgIncome = recentMonths.reduce((s, m) => s + m.income, 0) / recentMonths.length;
-  const avgNet = recentMonths.reduce((s, m) => s + m.net, 0) / recentMonths.length;
-  const trendRate = avgIncome > 0 ? avgNet / avgIncome : 0;
-  const trendFactor: HealthFactor = {
-    score: Math.round(clamp(((trendRate + 0.2) / 0.4) * 100, 0, 100)),
-    value: trendRate,
+  // SAVE — long-term savings, i.e. progress toward active goals with a target amount. No
+  // goals set at all is treated as a neutral midpoint rather than penalized to 0 — this
+  // measures progress on goals you've chosen to track, not whether you've set any.
+  const targeted = goals.filter((g): g is { currentAmount: number; targetAmount: number } => !!g.targetAmount && g.targetAmount > 0);
+  const avgGoalProgress =
+    targeted.length === 0
+      ? 0.5
+      : targeted.reduce((sum, g) => sum + Math.min(1, g.currentAmount / g.targetAmount), 0) / targeted.length;
+  const longTermSavings = { score: Math.round(avgGoalProgress * 100), ratio: avgGoalProgress };
+
+  // BORROW — manageable debt load relative to annual income. 0% maps to 100, 100%+ maps to 0.
+  const annualIncomeEstimate = monthlyIncome * 12;
+  const debtRatio = annualIncomeEstimate > 0 ? totalDebt / annualIncomeEstimate : totalDebt > 0 ? 1 : 0;
+  const manageableDebt = { score: Math.round(clamp(100 - debtRatio * 100, 0, 100)), ratio: debtRatio };
+
+  // PLAN — planning ahead financially, measured as budgets set and stayed within. No
+  // budgets at all scores 0 (there's no plan in place); otherwise it's the share of this
+  // month's budgeted categories still within their limit.
+  const onTrack = budgets.filter((b) => b.spent <= b.effectiveAmount).length;
+  const planAhead = {
+    score: budgets.length === 0 ? 0 : Math.round((onTrack / budgets.length) * 100),
+    onTrack,
+    total: budgets.length,
   };
 
   const score = Math.round(
-    savingsRateFactor.score * 0.3 + debtFactor.score * 0.25 + emergencyFundFactor.score * 0.25 + trendFactor.score * 0.2
+    spendLessThanIncome.score * 0.125 +
+      payBillsOnTime.score * 0.125 +
+      liquidSavings.score * 0.125 +
+      longTermSavings.score * 0.125 +
+      manageableDebt.score * 0.25 +
+      planAhead.score * 0.25
   );
 
   return {
     score: clamp(score, 0, 100),
-    breakdown: {
-      savingsRate: savingsRateFactor,
-      debtToIncome: debtFactor,
-      emergencyFund: emergencyFundFactor,
-      trend: trendFactor,
-    },
+    breakdown: { spendLessThanIncome, payBillsOnTime, liquidSavings, longTermSavings, manageableDebt, planAhead },
   };
 }
 
@@ -127,11 +149,15 @@ export async function getSummary(userId: string) {
   });
 
   const upcomingBills = await getUpcomingBills(userId, 5);
+  const allBills = await listBills(userId);
 
   const savingsGoals = await prisma.savingsGoal.findMany({
     where: { userId, isActive: true },
     orderBy: { createdAt: "asc" },
   });
+
+  const currentPeriod = currentPeriodMonthYear();
+  const currentBudgets = await listBudgets(userId, currentPeriod.month, currentPeriod.year);
 
   const currentMonthExpenses = convertedTransactions.filter(
     (tx) => tx.type === "EXPENSE" && tx.categoryId && tx.date >= start && tx.date < end
@@ -152,11 +178,16 @@ export async function getSummary(userId: string) {
   });
 
   const savingsRate = monthlyIncome > 0 ? savings / monthlyIncome : 0;
+  const liquidCash = convertedBalances.filter((b) => b > 0).reduce((sum, b) => sum + b, 0);
+  const totalDebt = convertedBalances.filter((b) => b < 0).reduce((sum, b) => sum + Math.abs(b), 0);
   const health = computeFinancialHealth({
-    accounts: convertedBalances.map((balance) => ({ balance })),
     monthlyIncome,
     monthlyExpenses,
-    cashFlow,
+    liquidCash,
+    totalDebt,
+    bills: allBills,
+    goals: savingsGoals.map((g) => ({ currentAmount: Number(g.currentAmount), targetAmount: g.targetAmount ? Number(g.targetAmount) : null })),
+    budgets: currentBudgets,
   });
 
   return {

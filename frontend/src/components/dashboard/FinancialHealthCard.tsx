@@ -24,14 +24,25 @@ function FactorBar({ label, score, hint }: { label: string; score: number; hint:
   );
 }
 
+function Pillar({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="space-y-2.5">{children}</div>
+    </div>
+  );
+}
+
 export function FinancialHealthCard({
   score,
   savingsRate,
   breakdown,
+  hasGoals,
 }: {
   score: number;
   savingsRate: number;
   breakdown: FinancialHealthBreakdown;
+  hasGoals: boolean;
 }) {
   const { t } = useTranslation();
   const status =
@@ -46,8 +57,9 @@ export function FinancialHealthCard({
 
   return (
     <Card className="border-border/60 shadow-soft">
-      <CardHeader>
+      <CardHeader className="space-y-1">
         <CardTitle className="text-base">{t("dashboard.health.title")}</CardTitle>
+        <p className="text-xs text-muted-foreground">{t("dashboard.health.subtitle")}</p>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="flex items-center gap-6">
@@ -83,27 +95,60 @@ export function FinancialHealthCard({
           </div>
         </div>
 
-        <div className="space-y-3 border-t border-border/60 pt-4">
-          <FactorBar
-            label={t("dashboard.health.factorSavingsRate")}
-            score={breakdown.savingsRate.score}
-            hint={t("dashboard.health.thisMonth", { value: Math.round(breakdown.savingsRate.value * 100) })}
-          />
-          <FactorBar
-            label={t("dashboard.health.factorDebt")}
-            score={breakdown.debtToIncome.score}
-            hint={t("dashboard.health.ofAnnualIncome", { value: Math.round(breakdown.debtToIncome.value * 100) })}
-          />
-          <FactorBar
-            label={t("dashboard.health.factorEmergency")}
-            score={breakdown.emergencyFund.score}
-            hint={t("dashboard.health.monthsCovered", { value: breakdown.emergencyFund.value.toFixed(1) })}
-          />
-          <FactorBar
-            label={t("dashboard.health.factorTrend")}
-            score={breakdown.trend.score}
-            hint={t("dashboard.health.avgNetVsIncome", { value: Math.round(breakdown.trend.value * 100) })}
-          />
+        <div className="space-y-4 border-t border-border/60 pt-4">
+          <Pillar label={t("dashboard.health.pillars.spend")}>
+            <FactorBar
+              label={t("dashboard.health.factorSpendLessThanIncome")}
+              score={breakdown.spendLessThanIncome.score}
+              hint={t("dashboard.health.savedThisMonth", { value: Math.round(breakdown.spendLessThanIncome.ratio * 100) })}
+            />
+            <FactorBar
+              label={t("dashboard.health.factorPayBillsOnTime")}
+              score={breakdown.payBillsOnTime.score}
+              hint={
+                breakdown.payBillsOnTime.total === 0
+                  ? t("dashboard.health.noBillsToTrack")
+                  : t("dashboard.health.billsOnTime", { onTime: breakdown.payBillsOnTime.onTime, total: breakdown.payBillsOnTime.total })
+              }
+            />
+          </Pillar>
+
+          <Pillar label={t("dashboard.health.pillars.save")}>
+            <FactorBar
+              label={t("dashboard.health.factorLiquidSavings")}
+              score={breakdown.liquidSavings.score}
+              hint={t("dashboard.health.monthsCovered", { value: breakdown.liquidSavings.monthsCovered.toFixed(1) })}
+            />
+            <FactorBar
+              label={t("dashboard.health.factorLongTermSavings")}
+              score={breakdown.longTermSavings.score}
+              hint={
+                hasGoals
+                  ? t("dashboard.health.avgGoalProgress", { value: Math.round(breakdown.longTermSavings.ratio * 100) })
+                  : t("dashboard.health.noGoalsYet")
+              }
+            />
+          </Pillar>
+
+          <Pillar label={t("dashboard.health.pillars.borrow")}>
+            <FactorBar
+              label={t("dashboard.health.factorManageableDebt")}
+              score={breakdown.manageableDebt.score}
+              hint={t("dashboard.health.ofAnnualIncome", { value: Math.round(breakdown.manageableDebt.ratio * 100) })}
+            />
+          </Pillar>
+
+          <Pillar label={t("dashboard.health.pillars.plan")}>
+            <FactorBar
+              label={t("dashboard.health.factorPlanAhead")}
+              score={breakdown.planAhead.score}
+              hint={
+                breakdown.planAhead.total === 0
+                  ? t("dashboard.health.noBudgetsYet")
+                  : t("dashboard.health.budgetsOnTrack", { onTrack: breakdown.planAhead.onTrack, total: breakdown.planAhead.total })
+              }
+            />
+          </Pillar>
         </div>
       </CardContent>
     </Card>

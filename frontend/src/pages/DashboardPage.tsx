@@ -50,6 +50,7 @@ export default function DashboardPage() {
           score={data.financialHealthScore}
           savingsRate={data.savingsRate}
           breakdown={data.financialHealthBreakdown}
+          hasGoals={data.savingsGoals.length > 0}
         />
       </div>
 
