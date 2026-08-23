@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,17 +9,22 @@ import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { CategoryPieChart } from "@/components/dashboard/CategoryPieChart";
 import { AccountBalanceChart } from "@/components/analytics/AccountBalanceChart";
 import { DebtProgressChart } from "@/components/analytics/DebtProgressChart";
+import { HealthScoreDetail } from "@/components/analytics/HealthScoreDetail";
 import { useAnalyticsOverview, useCategoryBreakdown } from "@/hooks/useAnalytics";
+import { useDashboardSummary } from "@/hooks/useDashboard";
 import { currentPeriodMonthYear } from "@/lib/period";
 
 export default function AnalyticsPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") ?? "category";
   const initialPeriod = currentPeriodMonthYear(new Date());
   const [month, setMonth] = useState(initialPeriod.month);
   const [year, setYear] = useState(initialPeriod.year);
 
   const { data: overview, isLoading: overviewLoading } = useAnalyticsOverview(12);
   const { data: categoryData, isLoading: categoryLoading } = useCategoryBreakdown(month, year);
+  const { data: dashboardData, isLoading: healthLoading } = useDashboardSummary();
 
   const shiftMonth = (delta: number) => {
     let m = month + delta;
@@ -36,12 +42,13 @@ export default function AnalyticsPage() {
         <p className="text-sm text-muted-foreground">{t("analytics.subtitle")}</p>
       </div>
 
-      <Tabs defaultValue="category">
+      <Tabs defaultValue={initialTab}>
         <TabsList className="flex-wrap">
           <TabsTrigger value="category">{t("analytics.tabs.category")}</TabsTrigger>
           <TabsTrigger value="cashflow">{t("analytics.tabs.cashflow")}</TabsTrigger>
           <TabsTrigger value="balances">{t("analytics.tabs.balances")}</TabsTrigger>
           <TabsTrigger value="debt">{t("analytics.tabs.debt")}</TabsTrigger>
+          <TabsTrigger value="health">{t("analytics.tabs.health")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="category" className="space-y-4">
@@ -78,6 +85,19 @@ export default function AnalyticsPage() {
             <Skeleton className="h-72 rounded-2xl" />
           ) : (
             <DebtProgressChart data={overview?.debtProgress ?? []} debtAccounts={overview?.debtAccounts ?? []} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="health">
+          {healthLoading || !dashboardData ? (
+            <Skeleton className="h-96 rounded-2xl" />
+          ) : (
+            <HealthScoreDetail
+              score={dashboardData.financialHealthScore}
+              savingsRate={dashboardData.savingsRate}
+              breakdown={dashboardData.financialHealthBreakdown}
+              hasGoals={dashboardData.savingsGoals.length > 0}
+            />
           )}
         </TabsContent>
       </Tabs>

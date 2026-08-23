@@ -163,7 +163,9 @@
       "noGoalsYet": "No active goals yet",
       "ofAnnualIncome": "{{value}}% of annual income",
       "budgetsOnTrack": "{{onTrack}} of {{total}} budgets on track",
-      "noBudgetsYet": "No budgets set yet"
+      "noBudgetsYet": "No budgets set yet",
+      "weakestArea": "Where to focus first",
+      "viewDetails": "View full breakdown"
     },
     "recentTx": {
       "title": "Recent Transactions",
@@ -434,7 +436,8 @@
       "category": "Spending by category",
       "cashflow": "Income vs expense",
       "balances": "Account balances",
-      "debt": "Debt payoff"
+      "debt": "Debt payoff",
+      "health": "Health score"
     },
     "accountBalance": {
       "title": "Account Balances Over Time",

@@ -1,9 +1,9 @@
-import { AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { factorLabel, factorHint, weakestFactor, healthStatus } from "@/lib/financial-health";
+import { factorLabel, factorHint, healthStatus, FACTOR_PILLAR, type FactorKey } from "@/lib/financial-health";
 import type { FinancialHealthBreakdown } from "@/types";
 
 const STATUS_STYLE = {
@@ -12,7 +12,38 @@ const STATUS_STYLE = {
   atRisk: { tone: "text-danger", ring: "stroke-danger", Icon: AlertTriangle },
 };
 
-export function FinancialHealthCard({
+function factorTone(score: number) {
+  if (score >= 70) return "bg-success";
+  if (score >= 40) return "bg-warning";
+  return "bg-danger";
+}
+
+function FactorBar({ label, score, hint }: { label: string; score: number; hint: string }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="font-medium text-foreground">{label}</span>
+        <span className="text-muted-foreground">{hint}</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+        <div className={cn("h-full rounded-full", factorTone(score))} style={{ width: `${score}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function Pillar({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="space-y-2.5">{children}</div>
+    </div>
+  );
+}
+
+const PILLAR_ORDER: Array<"spend" | "save" | "borrow" | "plan"> = ["spend", "save", "borrow", "plan"];
+
+export function HealthScoreDetail({
   score,
   savingsRate,
   breakdown,
@@ -26,17 +57,22 @@ export function FinancialHealthCard({
   const { t } = useTranslation();
   const status = STATUS_STYLE[healthStatus(score)];
   const statusLabel = t(`dashboard.health.${healthStatus(score)}`);
-  const weakest = weakestFactor(breakdown);
 
   const circumference = 2 * Math.PI * 42;
   const offset = circumference * (1 - score / 100);
 
+  const factorsByPillar = PILLAR_ORDER.map((pillar) => ({
+    pillar,
+    keys: (Object.keys(FACTOR_PILLAR) as FactorKey[]).filter((key) => FACTOR_PILLAR[key] === pillar),
+  }));
+
   return (
     <Card className="border-border/60 shadow-soft">
-      <CardHeader>
+      <CardHeader className="space-y-1">
         <CardTitle className="text-base">{t("dashboard.health.title")}</CardTitle>
+        <p className="text-xs text-muted-foreground">{t("dashboard.health.subtitle")}</p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         <div className="flex items-center gap-6">
           <div className="relative h-28 w-28 shrink-0">
             <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
@@ -70,19 +106,20 @@ export function FinancialHealthCard({
           </div>
         </div>
 
-        <div className="rounded-lg border border-border/60 bg-secondary/40 p-3">
-          <p className="text-xs font-medium text-foreground">{t("dashboard.health.weakestArea")}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {factorLabel(weakest, t)} — {factorHint(weakest, breakdown, t, hasGoals)}
-          </p>
+        <div className="grid grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-2">
+          {factorsByPillar.map(({ pillar, keys }) => (
+            <Pillar key={pillar} label={t(`dashboard.health.pillars.${pillar}`)}>
+              {keys.map((key) => (
+                <FactorBar
+                  key={key}
+                  label={factorLabel(key, t)}
+                  score={breakdown[key].score}
+                  hint={factorHint(key, breakdown, t, hasGoals)}
+                />
+              ))}
+            </Pillar>
+          ))}
         </div>
-
-        <Link
-          to="/analytics?tab=health"
-          className="flex items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
-        >
-          {t("dashboard.health.viewDetails")} <ArrowRight className="h-3 w-3" />
-        </Link>
       </CardContent>
     </Card>
   );
