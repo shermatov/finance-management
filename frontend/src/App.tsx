@@ -15,8 +15,8 @@ import GoalsPage from "@/pages/GoalsPage";
 import BudgetsPage from "@/pages/BudgetsPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import CalendarPage from "@/pages/CalendarPage";
+import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
-import PlaceholderPage from "@/pages/PlaceholderPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 function App() {
@@ -39,7 +39,7 @@ function App() {
           <Route path="/bills" element={<BillsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/reports" element={<PlaceholderPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

@@ -64,11 +64,6 @@
     "description": "The page you're looking for doesn't exist.",
     "backToDashboard": "Back to dashboard"
   },
-  "placeholder": {
-    "titleSuffix": "is coming in a later phase",
-    "thisSection": "This section",
-    "description": "Phase 1 focused on the foundation — auth, accounts, transactions, categories and the dashboard. This section will ship in a follow-up phase."
-  },
   "auth": {
     "login": {
       "title": "Welcome back",
@@ -451,6 +446,24 @@
       "bills": "Bills due",
       "transactions": "Transactions",
       "empty": "Nothing on this day"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "A month's income, spending, tax, and debt in one place — export it as CSV any time.",
+    "exportCsv": "Export CSV",
+    "couldNotLoad": "Could not load this report. Please try again.",
+    "income": "Income",
+    "expenses": "Expenses",
+    "net": "Net Savings",
+    "taxPaid": "Tax Paid",
+    "totalDebt": "Total Debt",
+    "categoryBreakdown": "Spending by Category",
+    "emptyBreakdown": "No categorized expenses this month",
+    "table": {
+      "category": "Category",
+      "amount": "Amount",
+      "percent": "% of expenses"
     }
   },
   "settings": {

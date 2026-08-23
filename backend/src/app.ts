@@ -12,6 +12,7 @@ import { transactionsRouter } from "./modules/transactions/transactions.routes.j
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes.js";
 import { analyticsRouter } from "./modules/analytics/analytics.routes.js";
 import { calendarRouter } from "./modules/calendar/calendar.routes.js";
+import { reportsRouter } from "./modules/reports/reports.routes.js";
 import { billsRouter } from "./modules/bills/bills.routes.js";
 import { goalsRouter } from "./modules/goals/goals.routes.js";
 import { budgetsRouter } from "./modules/budgets/budgets.routes.js";
@@ -42,6 +43,7 @@ app.use("/api/transactions", transactionsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/calendar", calendarRouter);
+app.use("/api/reports", reportsRouter);
 app.use("/api/bills", billsRouter);
 app.use("/api/goals", goalsRouter);
 app.use("/api/budgets", budgetsRouter);

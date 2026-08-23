@@ -178,6 +178,20 @@ export interface CalendarMonthResponse {
   bills: CalendarBillOccurrence[];
 }
 
+export interface ReportSummary {
+  month: number;
+  year: number;
+  baseCurrency: Currency;
+  income: number;
+  expenses: number;
+  net: number;
+  savingsRate: number;
+  taxPaid: number;
+  totalDebt: number;
+  debtPaidThisPeriod: number;
+  categoryBreakdown: CategoryBreakdownItem[];
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

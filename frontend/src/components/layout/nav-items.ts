@@ -30,6 +30,6 @@ export const navItems: NavItem[] = [
   { labelKey: "nav.bills", path: "/bills", icon: Receipt },
   { labelKey: "nav.analytics", path: "/analytics", icon: BarChart3 },
   { labelKey: "nav.calendar", path: "/calendar", icon: CalendarDays },
-  { labelKey: "nav.reports", path: "/reports", icon: FileText, soon: true },
+  { labelKey: "nav.reports", path: "/reports", icon: FileText },
   { labelKey: "nav.settings", path: "/settings", icon: Settings },
 ];
