@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useUpdateSettings } from "@/hooks/useSettings";
@@ -92,6 +93,8 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -466,6 +466,26 @@
       "percent": "чыгашанын %"
     }
   },
+  "notifications": {
+    "title": "Билдирүүлөр",
+    "empty": "Билдирүү жок",
+    "budgetExceeded": {
+      "title": "«{{category}}» бюджети ашты",
+      "message": "Бул айда {{amount}} ичинен {{spent}} коротулду"
+    },
+    "upcomingBill": {
+      "title": "«{{name}}» жакында төлөнөт",
+      "message": "Мөөнөтү {{date}} — {{amount}}"
+    },
+    "savingsMilestone": {
+      "title": "«{{name}}» максаты аткарылды!",
+      "message": "{{target}} ичинен {{current}} топтолду"
+    },
+    "lowBalance": {
+      "title": "«{{account}}» балансы аз калды",
+      "message": "{{balance}} калды — адаттагы чыгаша темпиңизден төмөн"
+    }
+  },
   "settings": {
     "title": "Жөндөөлөр",
     "subtitle": "Профилиңизди, коопсуздукту жана каалоолорду башкарыңыз.",

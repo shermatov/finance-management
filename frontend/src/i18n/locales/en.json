@@ -466,6 +466,26 @@
       "percent": "% of expenses"
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up",
+    "budgetExceeded": {
+      "title": "{{category}} is over budget",
+      "message": "Spent {{spent}} of {{amount}} this month"
+    },
+    "upcomingBill": {
+      "title": "{{name}} is due soon",
+      "message": "Due {{date}} — {{amount}}"
+    },
+    "savingsMilestone": {
+      "title": "{{name}} goal reached!",
+      "message": "Saved {{current}} of your {{target}} target"
+    },
+    "lowBalance": {
+      "title": "{{account}} balance is low",
+      "message": "{{balance}} left — below your typical spending pace"
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your profile, security, and preferences.",

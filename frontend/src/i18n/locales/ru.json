@@ -468,6 +468,26 @@
       "percent": "% от расходов"
     }
   },
+  "notifications": {
+    "title": "Уведомления",
+    "empty": "Уведомлений нет",
+    "budgetExceeded": {
+      "title": "Бюджет «{{category}}» превышен",
+      "message": "Потрачено {{spent}} из {{amount}} в этом месяце"
+    },
+    "upcomingBill": {
+      "title": "«{{name}}» скоро к оплате",
+      "message": "Срок {{date}} — {{amount}}"
+    },
+    "savingsMilestone": {
+      "title": "Цель «{{name}}» достигнута!",
+      "message": "Накоплено {{current}} из {{target}}"
+    },
+    "lowBalance": {
+      "title": "Низкий баланс на «{{account}}»",
+      "message": "Осталось {{balance}} — ниже вашего обычного темпа трат"
+    }
+  },
   "settings": {
     "title": "Настройки",
     "subtitle": "Управляйте профилем, безопасностью и предпочтениями.",

@@ -192,6 +192,12 @@ export interface ReportSummary {
   categoryBreakdown: CategoryBreakdownItem[];
 }
 
+export type LiveNotification =
+  | { type: "BUDGET_EXCEEDED"; link: string; params: { category: string; spent: number; amount: number } }
+  | { type: "UPCOMING_BILL"; link: string; params: { name: string; date: string; amount: number } }
+  | { type: "SAVINGS_MILESTONE"; link: string; params: { name: string; current: number; target: number } }
+  | { type: "LOW_BALANCE"; link: string; params: { account: string; balance: number } };
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;
