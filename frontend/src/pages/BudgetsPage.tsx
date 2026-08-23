@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, PiggyBank, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Coins, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -103,7 +103,7 @@ export default function BudgetsPage() {
         <Card className="border-border/60 shadow-soft">
           <CardContent>
             <EmptyState
-              icon={PiggyBank}
+              icon={Coins}
               title={t("budgets.emptyTitle")}
               description={t("budgets.emptyDescription")}
               action={

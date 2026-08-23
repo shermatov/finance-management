@@ -92,7 +92,7 @@ export function GoalFormDialog({
       currentAmount: values.isActive ? values.currentAmount : 0,
       deadline: values.isActive ? values.deadline || undefined : undefined,
       color: values.color,
-      icon: "piggy-bank",
+      icon: "coins",
     };
     try {
       if (isEditing && goal) {

@@ -248,7 +248,7 @@ model SavingsGoal {
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name          String
-  icon          String    @default("piggy-bank")
+  icon          String    @default("coins")
   color         String    @default("#22C55E")
   targetAmount  Decimal?  @db.Decimal(14, 2)
   currentAmount Decimal   @default(0) @db.Decimal(14, 2)

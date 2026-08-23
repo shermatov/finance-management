@@ -1,11 +1,11 @@
-import { Wallet, Landmark, CreditCard, PiggyBank, TrendingUp, type LucideIcon } from "lucide-react";
+import { Wallet, Landmark, CreditCard, Coins, TrendingUp, type LucideIcon } from "lucide-react";
 import type { AccountType, Currency } from "@/types";
 
 export const accountTypeMeta: Record<AccountType, { labelKey: string; icon: LucideIcon }> = {
   CASH: { labelKey: "accounts.types.cash", icon: Wallet },
   BANK: { labelKey: "accounts.types.bank", icon: Landmark },
   CREDIT_CARD: { labelKey: "accounts.types.creditCard", icon: CreditCard },
-  SAVINGS: { labelKey: "accounts.types.savings", icon: PiggyBank },
+  SAVINGS: { labelKey: "accounts.types.savings", icon: Coins },
   INVESTMENT: { labelKey: "accounts.types.investment", icon: TrendingUp },
 };
 
@@ -13,7 +13,7 @@ export const accountTypeIconName: Record<AccountType, string> = {
   CASH: "wallet",
   BANK: "landmark",
   CREDIT_CARD: "credit-card",
-  SAVINGS: "piggy-bank",
+  SAVINGS: "coins",
   INVESTMENT: "trending-up",
 };
 

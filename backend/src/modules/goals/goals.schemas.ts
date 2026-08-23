@@ -7,7 +7,7 @@ export const createGoalSchema = z
     currentAmount: z.coerce.number().min(0).default(0),
     deadline: z.coerce.date().optional(),
     isActive: z.coerce.boolean().default(true),
-    icon: z.string().min(1).max(50).default("piggy-bank"),
+    icon: z.string().min(1).max(50).default("coins"),
     color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#22C55E"),
   })
   .refine((data) => !data.isActive || data.targetAmount !== undefined, {
