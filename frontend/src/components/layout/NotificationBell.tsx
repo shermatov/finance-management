@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications, useUnseenNotifications } from "@/hooks/useNotifications";
 import { formatNumber, formatDate } from "@/lib/format";
 import type { LiveNotification } from "@/types";
 
@@ -66,16 +66,17 @@ export function NotificationBell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: notifications } = useNotifications();
+  const { unseenCount, markAllSeen } = useUnseenNotifications(notifications);
   const count = notifications?.length ?? 0;
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && markAllSeen()}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
-          {count > 0 && (
+          {unseenCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-medium text-white">
-              {count > 9 ? "9+" : count}
+              {unseenCount > 9 ? "9+" : unseenCount}
             </span>
           )}
         </Button>
