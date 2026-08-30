@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Pencil, Trash2, Flame } from "lucide-react";
+import { Plus, Pencil, Trash2, Flame, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -55,7 +55,7 @@ function HabitCard({
   onDelete: (habit: Habit) => void;
 }) {
   const { t } = useTranslation();
-  const [value, setValue] = useState(habit.todayValue?.toString() ?? "");
+  const [value, setValue] = useState("");
 
   return (
     <Card className="border-border/60 shadow-soft">
@@ -83,26 +83,46 @@ function HabitCard({
         <WeekActivity last7Days={habit.last7Days} color={habit.color} />
 
         {habit.unit ? (
-          <form
-            className="flex items-center gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              onLog(habit, Number(value) || 0);
-            }}
-          >
-            <Input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              placeholder={t("habits.quantityPlaceholder", { unit: habit.unit }) ?? undefined}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="h-10"
-            />
-            <Button type="submit" variant={habit.doneToday ? "secondary" : "default"} className="shrink-0">
-              {t("habits.log")}
-            </Button>
-          </form>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{t("habits.todayLabel")}</span>
+              <span className="flex items-center gap-1.5 font-medium">
+                {t("habits.todayAmount", { value: habit.todayValue ?? 0, unit: habit.unit })}
+                {!!habit.todayValue && (
+                  <button
+                    type="button"
+                    onClick={() => onLog(habit, 0)}
+                    className="text-muted-foreground hover:text-danger"
+                    aria-label={t("common.delete") ?? undefined}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </span>
+            </div>
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const amount = Number(value);
+                if (amount > 0) onLog(habit, amount);
+                setValue("");
+              }}
+            >
+              <Input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder={t("habits.addAmountPlaceholder", { unit: habit.unit }) ?? undefined}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                className="h-10"
+              />
+              <Button type="submit" className="shrink-0">
+                {t("habits.add")}
+              </Button>
+            </form>
+          </div>
         ) : (
           <button
             type="button"

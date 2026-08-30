@@ -97,8 +97,10 @@ export async function deleteHabit(userId: string, id: string) {
 /**
  * Logs today's entry. For a plain checkbox habit (no unit), this is a toggle: creates
  * today's log if missing, removes it if present, ignoring `value`. For a quantity-tracked
- * habit (unit set), a positive `value` creates/overwrites today's amount, while 0 or
- * omitting it clears today's entry — same on/off semantics, just quantity-aware.
+ * habit (unit set), a positive `value` *adds* to today's running total (reading 10 pages
+ * this morning and 5 more tonight logs 15 total) rather than replacing it, since the same
+ * habit is often logged more than once a day. 0 or omitting it clears today's entry
+ * entirely — an explicit reset, not a same-day decrement.
  */
 export async function logToday(userId: string, id: string, value?: number) {
   const habit = await prisma.habit.findFirst({ where: { id, userId } });
@@ -110,7 +112,7 @@ export async function logToday(userId: string, id: string, value?: number) {
   if (habit.unit) {
     if (value && value > 0) {
       if (existing) {
-        await prisma.habitLog.update({ where: { id: existing.id }, data: { value } });
+        await prisma.habitLog.update({ where: { id: existing.id }, data: { value: { increment: value } } });
       } else {
         await prisma.habitLog.create({ data: { habitId: id, userId, date: today, value } });
       }
