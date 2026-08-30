@@ -395,6 +395,9 @@
     "emptyDescription": "Jot down something to fix, read, or handle later.",
     "nothingActive": "Nothing active — add a plan to get started.",
     "doneFolder": "Done ({{count}})",
+    "summary": "{{active}} active · {{done}} done",
+    "overdueCount": "{{count}} overdue",
+    "overdue": "Overdue — was due {{date}}",
     "deleteTitle": "Delete this plan?",
     "deleteDescription": "This cannot be undone.",
     "status": {

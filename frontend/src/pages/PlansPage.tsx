@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Pencil, Trash2, Circle, CircleDot, CheckCircle2, ChevronDown, ChevronRight, ListTodo } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Circle,
+  CircleDot,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  ListTodo,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -32,6 +44,17 @@ const STATUS_TONE = {
   DONE: "text-success",
 };
 
+const STATUS_BADGE_CLASS = {
+  PLANNED: "border-transparent bg-secondary text-secondary-foreground",
+  IN_PROGRESS: "border-transparent bg-warning/15 text-warning",
+  DONE: "border-transparent bg-success/15 text-success",
+};
+
+function isOverdue(plan: Plan): boolean {
+  if (!plan.dueDate || plan.status === "DONE") return false;
+  return new Date(plan.dueDate) < new Date(new Date().toDateString());
+}
+
 function PlanRow({
   plan,
   onToggleStatus,
@@ -43,17 +66,29 @@ function PlanRow({
   onEdit: (plan: Plan) => void;
   onDelete: (plan: Plan) => void;
 }) {
+  const { t } = useTranslation();
   const Icon = STATUS_ICON[plan.status];
   const isDone = plan.status === "DONE";
+  const overdue = isOverdue(plan);
   return (
     <div className="flex items-start gap-3 border-b border-border/40 py-3 last:border-b-0">
       <button type="button" onClick={() => onToggleStatus(plan)} className={cn("mt-0.5 shrink-0", STATUS_TONE[plan.status])}>
         <Icon className="h-5 w-5" />
       </button>
-      <div className="min-w-0 flex-1">
-        <p className={cn("truncate text-sm font-medium", isDone && "text-muted-foreground line-through")}>{plan.title}</p>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className={cn("truncate text-sm font-medium", isDone && "text-muted-foreground line-through")}>{plan.title}</p>
+          <Badge className={cn("px-2 py-0 text-[10px] font-medium", STATUS_BADGE_CLASS[plan.status])}>
+            {t(`plans.status.${plan.status}`)}
+          </Badge>
+        </div>
         {plan.description && <p className="truncate text-xs text-muted-foreground">{plan.description}</p>}
-        {plan.dueDate && <p className="text-xs text-muted-foreground">{formatDate(plan.dueDate)}</p>}
+        {plan.dueDate && (
+          <p className={cn("flex items-center gap-1 text-xs", overdue ? "font-medium text-danger" : "text-muted-foreground")}>
+            {overdue && <AlertTriangle className="h-3 w-3" />}
+            {overdue ? t("plans.overdue", { date: formatDate(plan.dueDate) }) : formatDate(plan.dueDate)}
+          </p>
+        )}
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <Button variant="ghost" size="icon" onClick={() => onEdit(plan)}>
@@ -109,6 +144,7 @@ export default function PlansPage() {
 
   const activePlans = (plans ?? []).filter((p) => p.status !== "DONE");
   const donePlans = (plans ?? []).filter((p) => p.status === "DONE");
+  const overdueCount = activePlans.filter(isOverdue).length;
 
   return (
     <div className="space-y-6">
@@ -116,6 +152,17 @@ export default function PlansPage() {
         <div>
           <h2 className="text-lg font-semibold">{t("plans.title")}</h2>
           <p className="text-sm text-muted-foreground">{t("plans.subtitle")}</p>
+          {!isLoading && plans && plans.length > 0 && (
+            <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{t("plans.summary", { active: activePlans.length, done: donePlans.length })}</span>
+              {overdueCount > 0 && (
+                <span className="flex items-center gap-1 font-medium text-danger">
+                  <AlertTriangle className="h-3 w-3" />
+                  {t("plans.overdueCount", { count: overdueCount })}
+                </span>
+              )}
+            </p>
+          )}
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" /> {t("plans.addPlan")}

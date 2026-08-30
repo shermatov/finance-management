@@ -397,6 +397,9 @@
     "emptyDescription": "Запишите то, что нужно починить, прочитать или сделать позже.",
     "nothingActive": "Нет активных планов — добавьте план, чтобы начать.",
     "doneFolder": "Выполнено ({{count}})",
+    "summary": "{{active}} активных · {{done}} выполнено",
+    "overdueCount": "{{count}} просрочено",
+    "overdue": "Просрочено — срок был {{date}}",
     "deleteTitle": "Удалить этот план?",
     "deleteDescription": "Это действие необратимо.",
     "status": {
