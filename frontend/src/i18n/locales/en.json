@@ -435,6 +435,15 @@
     "todayAmount": "{{value}} {{unit}}",
     "addAmountPlaceholder": "Add {{unit}}",
     "totalValue": "{{value}} {{unit}} total",
+    "viewSummary": "View week/month/year summary",
+    "period": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "periodValue": "{{value}} {{unit}}",
+    "periodDays_one": "{{count}} day",
+    "periodDays_other": "{{count}} days",
     "deleteTitle": "Delete this habit?",
     "deleteDescription": "Its full streak history will be lost. This cannot be undone.",
     "form": {

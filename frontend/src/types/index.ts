@@ -117,6 +117,11 @@ export interface Habit {
   todayValue: number | null;
   totalValue: number;
   last7Days: boolean[];
+  periodStats: {
+    week: { count: number; value: number };
+    month: { count: number; value: number };
+    year: { count: number; value: number };
+  };
   createdAt: string;
 }
 

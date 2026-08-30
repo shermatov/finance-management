@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Pencil, Trash2, Flame, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Flame, X, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,31 @@ function WeekActivity({ last7Days, color }: { last7Days: boolean[]; color: strin
   );
 }
 
+function PeriodStats({ habit }: { habit: Habit }) {
+  const { t } = useTranslation();
+  const periods: Array<{ key: "week" | "month" | "year"; label: string }> = [
+    { key: "week", label: t("habits.period.week") },
+    { key: "month", label: t("habits.period.month") },
+    { key: "year", label: t("habits.period.year") },
+  ];
+  return (
+    <div className="grid grid-cols-3 gap-2 rounded-lg border border-border/60 bg-secondary/40 p-3">
+      {periods.map(({ key, label }) => {
+        const stat = habit.periodStats[key];
+        return (
+          <div key={key} className="text-center">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-sm font-semibold">
+              {habit.unit ? t("habits.periodValue", { value: stat.value, unit: habit.unit }) : t("habits.periodDays", { count: stat.count })}
+            </p>
+            {!!habit.unit && <p className="text-[10px] text-muted-foreground">{t("habits.periodDays", { count: stat.count })}</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function HabitCard({
   habit,
   onLog,
@@ -56,6 +81,7 @@ function HabitCard({
 }) {
   const { t } = useTranslation();
   const [value, setValue] = useState("");
+  const [showPeriods, setShowPeriods] = useState(false);
 
   return (
     <Card className="border-border/60 shadow-soft">
@@ -144,11 +170,22 @@ function HabitCard({
             <Flame className="h-3.5 w-3.5" style={{ color: habit.color }} />
             {t("habits.currentStreak", { count: habit.currentStreak })}
           </span>
-          <span>{t("habits.bestStreak", { count: habit.bestStreak })}</span>
+          <div className="flex items-center gap-2">
+            <span>{t("habits.bestStreak", { count: habit.bestStreak })}</span>
+            <button
+              type="button"
+              onClick={() => setShowPeriods((v) => !v)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label={t("habits.viewSummary") ?? undefined}
+            >
+              <BarChart2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
         {habit.unit && habit.totalValue > 0 && (
           <p className="-mt-2 text-xs text-muted-foreground">{t("habits.totalValue", { value: habit.totalValue, unit: habit.unit })}</p>
         )}
+        {showPeriods && <PeriodStats habit={habit} />}
       </CardContent>
     </Card>
   );

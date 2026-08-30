@@ -435,6 +435,14 @@
     "todayAmount": "{{value}} {{unit}}",
     "addAmountPlaceholder": "{{unit}} кошуу",
     "totalValue": "Баары: {{value}} {{unit}}",
+    "viewSummary": "Апта/ай/жыл боюнча жыйынтыкты көрүү",
+    "period": {
+      "week": "Апта",
+      "month": "Ай",
+      "year": "Жыл"
+    },
+    "periodValue": "{{value}} {{unit}}",
+    "periodDays": "{{count}} күн",
     "deleteTitle": "Бул адатты өчүрөсүзбү?",
     "deleteDescription": "Анын бүткүл ырааттуулук тарыхы жоголот. Бул аракетти кайтарууга болбойт.",
     "form": {

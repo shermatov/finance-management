@@ -59,6 +59,13 @@ function last7Days(dateKeys: Set<string>): boolean[] {
   return days;
 }
 
+/** Sums logged values and counts logged days within the last `days` days (today inclusive). */
+function periodStat(logs: HabitLog[], days: number) {
+  const cutoff = addDays(todayUTC(), -(days - 1));
+  const inWindow = logs.filter((l) => l.date >= cutoff);
+  return { count: inWindow.length, value: inWindow.reduce((sum, l) => sum + (l.value ?? 0), 0) };
+}
+
 function withStats(habit: Habit, logs: HabitLog[]) {
   const keys = new Set(logs.map((l) => dayKey(l.date)));
   const todayLog = logs.find((l) => dayKey(l.date) === dayKey(todayUTC()));
@@ -69,6 +76,11 @@ function withStats(habit: Habit, logs: HabitLog[]) {
     todayValue: todayLog?.value ?? null,
     totalValue,
     last7Days: last7Days(keys),
+    periodStats: {
+      week: periodStat(logs, 7),
+      month: periodStat(logs, 30),
+      year: periodStat(logs, 365),
+    },
   };
 }
 

@@ -437,6 +437,17 @@
     "todayAmount": "{{value}} {{unit}}",
     "addAmountPlaceholder": "Добавить {{unit}}",
     "totalValue": "Всего: {{value}} {{unit}}",
+    "viewSummary": "Смотреть сводку за неделю/месяц/год",
+    "period": {
+      "week": "Неделя",
+      "month": "Месяц",
+      "year": "Год"
+    },
+    "periodValue": "{{value}} {{unit}}",
+    "periodDays_one": "{{count}} день",
+    "periodDays_few": "{{count}} дня",
+    "periodDays_many": "{{count}} дней",
+    "periodDays_other": "{{count}} дня",
     "deleteTitle": "Удалить эту привычку?",
     "deleteDescription": "Вся история серии будет потеряна. Это действие необратимо.",
     "form": {
