@@ -219,6 +219,13 @@
       "selectAccount": "Эсепти тандаңыз",
       "category": "Категория",
       "notesLabel": "Эскертүү ({{optional}})"
+    },
+    "attachments": {
+      "title": "Чек сүрөттөрү",
+      "add": "Сүрөт кошуу",
+      "empty": "Азырынча сүрөт тиркелген эмес",
+      "invalidType": "Тек JPEG, PNG, WEBP же GIF форматтары гана колдоого алынат",
+      "tooLarge": "Сүрөт 2МБдан кичине болушу керек"
     }
   },
   "accounts": {

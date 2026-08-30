@@ -221,6 +221,13 @@
       "selectAccount": "Выберите счёт",
       "category": "Категория",
       "notesLabel": "Заметки ({{optional}})"
+    },
+    "attachments": {
+      "title": "Фото чеков",
+      "add": "Добавить фото",
+      "empty": "Пока нет прикреплённых фото",
+      "invalidType": "Поддерживаются только JPEG, PNG, WEBP или GIF",
+      "tooLarge": "Изображение должно быть меньше 2МБ"
     }
   },
   "accounts": {

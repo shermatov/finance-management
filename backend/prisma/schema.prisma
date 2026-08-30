@@ -48,13 +48,6 @@ enum BillStatus {
   PAID
 }
 
-enum NotificationType {
-  BUDGET_EXCEEDED
-  UPCOMING_BILL
-  SAVINGS_MILESTONE
-  LOW_BALANCE
-}
-
 enum Theme {
   LIGHT
   DARK
@@ -85,10 +78,8 @@ model User {
   budgets       Budget[]
   savingsGoals  SavingsGoal[]
   bills         Bill[]
-  notifications Notification[]
   attachments   Attachment[]
   refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
   settings      Settings?
 
   @@map("users")
@@ -204,9 +195,6 @@ model Transaction {
   transferToAccountId   String?
   transferToAccount     Account? @relation("TransferToAccount", fields: [transferToAccountId], references: [id])
 
-  isRecurring   Boolean @default(false)
-  recurringRule String?
-
   attachments Attachment[]
 
   createdAt DateTime @default(now())
@@ -296,25 +284,6 @@ model Bill {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Notifications
-// ─────────────────────────────────────────────────────────────────────────
-
-model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      NotificationType
-  title     String
-  message   String
-  isRead    Boolean          @default(false)
-  metadata  Json?
-  createdAt DateTime         @default(now())
-
-  @@index([userId, isRead])
-  @@map("notifications")
-}
-
-// ─────────────────────────────────────────────────────────────────────────
 // Attachments
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -333,22 +302,4 @@ model Attachment {
   @@index([userId])
   @@index([transactionId])
   @@map("attachments")
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Audit Log
-// ─────────────────────────────────────────────────────────────────────────
-
-model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action    String
-  entity    String
-  entityId  String?
-  metadata  Json?
-  createdAt DateTime @default(now())
-
-  @@index([userId, createdAt])
-  @@map("audit_logs")
 }

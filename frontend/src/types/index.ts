@@ -72,6 +72,16 @@ export interface Transaction {
   createdAt: string;
 }
 
+export interface Attachment {
+  id: string;
+  transactionId: string | null;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
 export interface Bill {
   id: string;
   name: string;

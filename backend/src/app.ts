@@ -18,6 +18,7 @@ import { billsRouter } from "./modules/bills/bills.routes.js";
 import { goalsRouter } from "./modules/goals/goals.routes.js";
 import { budgetsRouter } from "./modules/budgets/budgets.routes.js";
 import { settingsRouter } from "./modules/settings/settings.routes.js";
+import { attachmentsRouter } from "./modules/attachments/attachments.routes.js";
 
 export const app = express();
 
@@ -29,7 +30,9 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "2mb" }));
+// 4mb accommodates a ~2MB receipt photo attachment sent as a base64 data URI
+// (base64 adds ~37% overhead on top of the raw file, plus JSON field wrapping).
+app.use(express.json({ limit: "4mb" }));
 app.use(cookieParser());
 app.use(apiRateLimiter);
 
@@ -50,6 +53,7 @@ app.use("/api/bills", billsRouter);
 app.use("/api/goals", goalsRouter);
 app.use("/api/budgets", budgetsRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/attachments", attachmentsRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

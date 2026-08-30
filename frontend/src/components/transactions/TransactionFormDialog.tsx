@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateTransaction, useUpdateTransaction, type TransactionInput } from "@/hooks/useTransactions";
+import { AttachmentsSection } from "./AttachmentsSection";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useCategories";
 import { getErrorMessage } from "@/lib/api";
@@ -186,6 +187,8 @@ export function TransactionFormDialog({
             <Label htmlFor="notes">{t("transactions.form.notesLabel", { optional: t("common.optional") })}</Label>
             <Input id="notes" {...register("notes")} />
           </div>
+
+          {isEditing && transaction && <AttachmentsSection transactionId={transaction.id} />}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -219,6 +219,13 @@
       "selectAccount": "Select account",
       "category": "Category",
       "notesLabel": "Notes ({{optional}})"
+    },
+    "attachments": {
+      "title": "Receipt photos",
+      "add": "Add photo",
+      "empty": "No photos attached yet",
+      "invalidType": "Only JPEG, PNG, WEBP, or GIF images are supported",
+      "tooLarge": "Image must be under 2MB"
     }
   },
   "accounts": {
