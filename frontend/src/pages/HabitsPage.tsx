@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, Flame } from "lucide-react";
@@ -11,8 +11,37 @@ import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { HabitFormDialog } from "@/components/habits/HabitFormDialog";
 import { useHabits, useLogHabitToday, useDeleteHabit } from "@/hooks/useHabits";
 import { getErrorMessage } from "@/lib/api";
+import { currentLocale } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Habit } from "@/types";
+
+function weekdayLabels(): string[] {
+  const today = new Date();
+  const labels: string[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    labels.push(new Intl.DateTimeFormat(currentLocale(), { weekday: "narrow" }).format(d));
+  }
+  return labels;
+}
+
+function WeekActivity({ last7Days, color }: { last7Days: boolean[]; color: string }) {
+  const labels = useMemo(weekdayLabels, []);
+  return (
+    <div className="flex items-center justify-between gap-1">
+      {last7Days.map((done, i) => (
+        <div key={i} className="flex flex-col items-center gap-1">
+          <span className="text-[10px] text-muted-foreground">{labels[i]}</span>
+          <div
+            className={cn("h-5 w-5 rounded-md border", !done && "border-border/60 bg-secondary")}
+            style={done ? { backgroundColor: color, borderColor: color } : undefined}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function HabitCard({
   habit,
@@ -30,9 +59,17 @@ function HabitCard({
 
   return (
     <Card className="border-border/60 shadow-soft">
-      <CardContent className="space-y-3 p-5">
+      <CardContent className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-2">
-          <p className="min-w-0 truncate text-sm font-medium">{habit.title}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
+            >
+              <Flame className="h-5 w-5" />
+            </div>
+            <p className="min-w-0 truncate text-sm font-medium">{habit.title}</p>
+          </div>
           <div className="flex shrink-0 items-center gap-1">
             <Button variant="ghost" size="icon" onClick={() => onEdit(habit)}>
               <Pencil className="h-4 w-4" />
@@ -42,6 +79,8 @@ function HabitCard({
             </Button>
           </div>
         </div>
+
+        <WeekActivity last7Days={habit.last7Days} color={habit.color} />
 
         {habit.unit ? (
           <form
@@ -69,23 +108,26 @@ function HabitCard({
             type="button"
             onClick={() => onLog(habit)}
             className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-medium transition-colors",
+              "flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition-colors",
               habit.doneToday
                 ? "border-transparent bg-warning/15 text-warning"
                 : "border-border/60 text-muted-foreground hover:bg-secondary"
             )}
           >
-            <Flame className={cn("h-5 w-5", habit.doneToday && "fill-warning")} />
+            <Flame className={cn("h-4 w-4", habit.doneToday && "fill-warning")} />
             {habit.doneToday ? t("habits.doneToday") : t("habits.markToday")}
           </button>
         )}
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{t("habits.currentStreak", { count: habit.currentStreak })}</span>
+        <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 font-medium text-foreground">
+            <Flame className="h-3.5 w-3.5" style={{ color: habit.color }} />
+            {t("habits.currentStreak", { count: habit.currentStreak })}
+          </span>
           <span>{t("habits.bestStreak", { count: habit.bestStreak })}</span>
         </div>
         {habit.unit && habit.totalValue > 0 && (
-          <p className="text-xs text-muted-foreground">{t("habits.totalValue", { value: habit.totalValue, unit: habit.unit })}</p>
+          <p className="-mt-2 text-xs text-muted-foreground">{t("habits.totalValue", { value: habit.totalValue, unit: habit.unit })}</p>
         )}
       </CardContent>
     </Card>
@@ -131,12 +173,19 @@ export default function HabitsPage() {
     }
   };
 
+  const doneTodayCount = (habits ?? []).filter((h) => h.doneToday).length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">{t("habits.title")}</h2>
           <p className="text-sm text-muted-foreground">{t("habits.subtitle")}</p>
+          {!isLoading && habits && habits.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("habits.summary", { total: habits.length, done: doneTodayCount })}
+            </p>
+          )}
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" /> {t("habits.addHabit")}
@@ -146,7 +195,7 @@ export default function HabitsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-2xl" />
+            <Skeleton key={i} className="h-48 rounded-2xl" />
           ))}
         </div>
       ) : !habits || habits.length === 0 ? (

@@ -418,6 +418,7 @@
   "habits": {
     "title": "Habits",
     "subtitle": "Everyday discipline — reading, exercise, sleep schedule — tracked one day at a time.",
+    "summary": "{{total}} habits · {{done}} done today",
     "addHabit": "Add habit",
     "editHabit": "Edit habit",
     "created": "Habit added",

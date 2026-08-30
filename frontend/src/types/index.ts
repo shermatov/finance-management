@@ -116,6 +116,7 @@ export interface Habit {
   doneToday: boolean;
   todayValue: number | null;
   totalValue: number;
+  last7Days: boolean[];
   createdAt: string;
 }
 

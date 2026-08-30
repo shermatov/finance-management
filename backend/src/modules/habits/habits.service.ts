@@ -49,6 +49,16 @@ function computeStreaks(dateKeys: Set<string>) {
   return { currentStreak, bestStreak: Math.max(bestStreak, currentStreak), doneToday };
 }
 
+/** Oldest-to-newest, ending today — for a small weekly activity view in the UI. */
+function last7Days(dateKeys: Set<string>): boolean[] {
+  const today = todayUTC();
+  const days: boolean[] = [];
+  for (let i = 6; i >= 0; i--) {
+    days.push(dateKeys.has(dayKey(addDays(today, -i))));
+  }
+  return days;
+}
+
 function withStats(habit: Habit, logs: HabitLog[]) {
   const keys = new Set(logs.map((l) => dayKey(l.date)));
   const todayLog = logs.find((l) => dayKey(l.date) === dayKey(todayUTC()));
@@ -58,6 +68,7 @@ function withStats(habit: Habit, logs: HabitLog[]) {
     ...computeStreaks(keys),
     todayValue: todayLog?.value ?? null,
     totalValue,
+    last7Days: last7Days(keys),
   };
 }
 
