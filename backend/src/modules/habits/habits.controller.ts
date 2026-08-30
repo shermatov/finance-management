@@ -22,7 +22,7 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
   res.status(204).send();
 });
 
-export const toggleToday = asyncHandler(async (req: Request, res: Response) => {
-  const habit = await habitsService.toggleToday(req.userId!, req.params.id);
+export const logToday = asyncHandler(async (req: Request, res: Response) => {
+  const habit = await habitsService.logToday(req.userId!, req.params.id, req.body.value);
   res.json({ habit });
 });

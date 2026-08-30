@@ -4,19 +4,98 @@ import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { HabitFormDialog } from "@/components/habits/HabitFormDialog";
-import { useHabits, useToggleHabitToday, useDeleteHabit } from "@/hooks/useHabits";
+import { useHabits, useLogHabitToday, useDeleteHabit } from "@/hooks/useHabits";
 import { getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { Habit } from "@/types";
 
+function HabitCard({
+  habit,
+  onLog,
+  onEdit,
+  onDelete,
+}: {
+  habit: Habit;
+  onLog: (habit: Habit, value?: number) => void;
+  onEdit: (habit: Habit) => void;
+  onDelete: (habit: Habit) => void;
+}) {
+  const { t } = useTranslation();
+  const [value, setValue] = useState(habit.todayValue?.toString() ?? "");
+
+  return (
+    <Card className="border-border/60 shadow-soft">
+      <CardContent className="space-y-3 p-5">
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 truncate text-sm font-medium">{habit.title}</p>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={() => onEdit(habit)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => onDelete(habit)}>
+              <Trash2 className="h-4 w-4 text-danger" />
+            </Button>
+          </div>
+        </div>
+
+        {habit.unit ? (
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onLog(habit, Number(value) || 0);
+            }}
+          >
+            <Input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              placeholder={t("habits.quantityPlaceholder", { unit: habit.unit }) ?? undefined}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="h-10"
+            />
+            <Button type="submit" variant={habit.doneToday ? "secondary" : "default"} className="shrink-0">
+              {t("habits.log")}
+            </Button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onLog(habit)}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-medium transition-colors",
+              habit.doneToday
+                ? "border-transparent bg-warning/15 text-warning"
+                : "border-border/60 text-muted-foreground hover:bg-secondary"
+            )}
+          >
+            <Flame className={cn("h-5 w-5", habit.doneToday && "fill-warning")} />
+            {habit.doneToday ? t("habits.doneToday") : t("habits.markToday")}
+          </button>
+        )}
+
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{t("habits.currentStreak", { count: habit.currentStreak })}</span>
+          <span>{t("habits.bestStreak", { count: habit.bestStreak })}</span>
+        </div>
+        {habit.unit && habit.totalValue > 0 && (
+          <p className="text-xs text-muted-foreground">{t("habits.totalValue", { value: habit.totalValue, unit: habit.unit })}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function HabitsPage() {
   const { t } = useTranslation();
   const { data: habits, isLoading } = useHabits();
-  const toggleToday = useToggleHabitToday();
+  const logToday = useLogHabitToday();
   const deleteHabit = useDeleteHabit();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -33,9 +112,9 @@ export default function HabitsPage() {
     setFormOpen(true);
   };
 
-  const handleToggle = async (habit: Habit) => {
+  const handleLog = async (habit: Habit, value?: number) => {
     try {
-      await toggleToday.mutateAsync(habit.id);
+      await logToday.mutateAsync({ id: habit.id, value });
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -88,40 +167,7 @@ export default function HabitsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {habits.map((habit) => (
-            <Card key={habit.id} className="border-border/60 shadow-soft">
-              <CardContent className="space-y-3 p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 truncate text-sm font-medium">{habit.title}</p>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(habit)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeletingHabit(habit)}>
-                      <Trash2 className="h-4 w-4 text-danger" />
-                    </Button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleToggle(habit)}
-                  className={cn(
-                    "flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-medium transition-colors",
-                    habit.doneToday
-                      ? "border-transparent bg-warning/15 text-warning"
-                      : "border-border/60 text-muted-foreground hover:bg-secondary"
-                  )}
-                >
-                  <Flame className={cn("h-5 w-5", habit.doneToday && "fill-warning")} />
-                  {habit.doneToday ? t("habits.doneToday") : t("habits.markToday")}
-                </button>
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{t("habits.currentStreak", { count: habit.currentStreak })}</span>
-                  <span>{t("habits.bestStreak", { count: habit.bestStreak })}</span>
-                </div>
-              </CardContent>
-            </Card>
+            <HabitCard key={habit.id} habit={habit} onLog={handleLog} onEdit={openEdit} onDelete={setDeletingHabit} />
           ))}
         </div>
       )}

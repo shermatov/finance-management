@@ -325,6 +325,10 @@ model Habit {
   title     String
   icon      String     @default("flame")
   color     String     @default("#F97316")
+  // When set (e.g. "pages", "minutes"), this habit tracks a daily quantity instead of a
+  // plain done/not-done — HabitLog.value holds that day's amount. Null keeps the habit as
+  // a simple checkbox. Streaks still key off log *presence*, not the value, either way.
+  unit      String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -341,6 +345,8 @@ model HabitLog {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date      DateTime @db.Date
+  // Only meaningful when the parent Habit has a `unit` set — the day's logged quantity.
+  value     Int?
   createdAt DateTime @default(now())
 
   @@unique([habitId, date])

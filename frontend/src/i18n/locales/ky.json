@@ -429,11 +429,17 @@
     "doneToday": "Бүгүн аткарылды",
     "currentStreak": "{{count}} күндүк ырааттуулук",
     "bestStreak": "Эң мыктысы: {{count}}",
+    "log": "Жазуу",
+    "quantityPlaceholder": "бүгүн {{unit}}",
+    "totalValue": "Баары: {{value}} {{unit}}",
     "deleteTitle": "Бул адатты өчүрөсүзбү?",
     "deleteDescription": "Анын бүткүл ырааттуулук тарыхы жоголот. Бул аракетти кайтарууга болбойт.",
     "form": {
       "title": "Аталышы",
-      "titlePlaceholder": "мис. 10 бет окуу",
+      "titlePlaceholder": "мис. Ар күнү окуу",
+      "unit": "Санды көзөмөлдөө ({{optional}})",
+      "unitPlaceholder": "мис. бет, мүнөт",
+      "unitHint": "Жөнөкөй \"аткарылды/аткарылган жок\" адат үчүн бош калтырыңыз, же ар күнү эмнени санаарыңызды жазыңыз.",
       "create": "Адат кошуу"
     }
   },

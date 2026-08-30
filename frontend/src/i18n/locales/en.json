@@ -429,11 +429,17 @@
     "doneToday": "Done today",
     "currentStreak": "{{count}} day streak",
     "bestStreak": "Best: {{count}}",
+    "log": "Log",
+    "quantityPlaceholder": "{{unit}} today",
+    "totalValue": "{{value}} {{unit}} total",
     "deleteTitle": "Delete this habit?",
     "deleteDescription": "Its full streak history will be lost. This cannot be undone.",
     "form": {
       "title": "Title",
-      "titlePlaceholder": "e.g. Read 10 pages",
+      "titlePlaceholder": "e.g. Read every day",
+      "unit": "Track a quantity ({{optional}})",
+      "unitPlaceholder": "e.g. pages, minutes",
+      "unitHint": "Leave blank for a simple done/not-done habit, or name what you're counting each day.",
       "create": "Add habit"
     }
   },

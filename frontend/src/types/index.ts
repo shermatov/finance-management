@@ -110,9 +110,12 @@ export interface Habit {
   title: string;
   icon: string;
   color: string;
+  unit: string | null;
   currentStreak: number;
   bestStreak: number;
   doneToday: boolean;
+  todayValue: number | null;
+  totalValue: number;
   createdAt: string;
 }
 

@@ -11,6 +11,7 @@ export function useHabits() {
 
 export interface HabitInput {
   title: string;
+  unit?: string | null;
 }
 
 function invalidateHabitQueries(queryClient: ReturnType<typeof useQueryClient>) {
@@ -44,10 +45,11 @@ export function useDeleteHabit() {
   });
 }
 
-export function useToggleHabitToday() {
+export function useLogHabitToday() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => (await api.post<{ habit: Habit }>(`/habits/${id}/toggle-today`)).data.habit,
+    mutationFn: async ({ id, value }: { id: string; value?: number }) =>
+      (await api.post<{ habit: Habit }>(`/habits/${id}/log-today`, { value })).data.habit,
     onSuccess: () => invalidateHabitQueries(queryClient),
   });
 }
