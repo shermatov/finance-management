@@ -20,6 +20,7 @@ import { budgetsRouter } from "./modules/budgets/budgets.routes.js";
 import { settingsRouter } from "./modules/settings/settings.routes.js";
 import { attachmentsRouter } from "./modules/attachments/attachments.routes.js";
 import { plansRouter } from "./modules/plans/plans.routes.js";
+import { habitsRouter } from "./modules/habits/habits.routes.js";
 
 export const app = express();
 
@@ -56,6 +57,7 @@ app.use("/api/budgets", budgetsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/attachments", attachmentsRouter);
 app.use("/api/plans", plansRouter);
+app.use("/api/habits", habitsRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

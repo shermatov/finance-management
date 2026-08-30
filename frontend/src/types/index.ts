@@ -105,6 +105,17 @@ export interface Plan {
   createdAt: string;
 }
 
+export interface Habit {
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  currentStreak: number;
+  bestStreak: number;
+  doneToday: boolean;
+  createdAt: string;
+}
+
 export interface SavingsGoal {
   id: string;
   name: string;

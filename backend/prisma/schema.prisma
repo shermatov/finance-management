@@ -86,6 +86,8 @@ model User {
   bills         Bill[]
   attachments   Attachment[]
   plans         Plan[]
+  habits        Habit[]
+  habitLogs     HabitLog[]
   refreshTokens RefreshToken[]
   settings      Settings?
 
@@ -308,6 +310,42 @@ model Plan {
 
   @@index([userId, status])
   @@map("plans")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Habits — daily-recurring discipline items (reading, exercise, sleep
+// schedule), tracked by a completion log rather than a single status: a
+// habit is "done" per calendar day, and streaks are derived from that log.
+// ─────────────────────────────────────────────────────────────────────────
+
+model Habit {
+  id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  icon      String     @default("flame")
+  color     String     @default("#F97316")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  logs      HabitLog[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+  @@map("habit_logs")
 }
 
 // ─────────────────────────────────────────────────────────────────────────

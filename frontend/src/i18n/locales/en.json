@@ -47,6 +47,7 @@
     "budgets": "Budgets",
     "goals": "Goals",
     "plans": "Plans",
+    "habits": "Habits",
     "bills": "Bills",
     "analytics": "Analytics",
     "calendar": "Calendar",
@@ -412,6 +413,28 @@
       "dueDate": "Due date ({{optional}})",
       "status": "Status",
       "create": "Add plan"
+    }
+  },
+  "habits": {
+    "title": "Habits",
+    "subtitle": "Everyday discipline — reading, exercise, sleep schedule — tracked one day at a time.",
+    "addHabit": "Add habit",
+    "editHabit": "Edit habit",
+    "created": "Habit added",
+    "updated": "Habit updated",
+    "deleted": "Habit deleted",
+    "emptyTitle": "No habits yet",
+    "emptyDescription": "Add something you want to do every day — reading, pushups, an early bedtime.",
+    "markToday": "Mark today",
+    "doneToday": "Done today",
+    "currentStreak": "{{count}} day streak",
+    "bestStreak": "Best: {{count}}",
+    "deleteTitle": "Delete this habit?",
+    "deleteDescription": "Its full streak history will be lost. This cannot be undone.",
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "e.g. Read 10 pages",
+      "create": "Add habit"
     }
   },
   "bills": {
