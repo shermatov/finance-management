@@ -12,6 +12,7 @@ import AccountsPage from "@/pages/AccountsPage";
 import CategoriesPage from "@/pages/CategoriesPage";
 import BillsPage from "@/pages/BillsPage";
 import GoalsPage from "@/pages/GoalsPage";
+import PlansPage from "@/pages/PlansPage";
 import BudgetsPage from "@/pages/BudgetsPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import CalendarPage from "@/pages/CalendarPage";
@@ -36,6 +37,7 @@ function App() {
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/goals" element={<GoalsPage />} />
+          <Route path="/plans" element={<PlansPage />} />
           <Route path="/bills" element={<BillsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />

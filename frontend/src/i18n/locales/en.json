@@ -46,6 +46,7 @@
     "categories": "Categories",
     "budgets": "Budgets",
     "goals": "Goals",
+    "plans": "Plans",
     "bills": "Bills",
     "analytics": "Analytics",
     "calendar": "Calendar",
@@ -380,6 +381,34 @@
       "adding": "Adding…",
       "add": "Add",
       "added": "Contribution added"
+    }
+  },
+  "plans": {
+    "title": "Plans",
+    "subtitle": "Things to do or handle later — not tied to a savings target.",
+    "addPlan": "Add plan",
+    "editPlan": "Edit plan",
+    "created": "Plan added",
+    "updated": "Plan updated",
+    "deleted": "Plan deleted",
+    "emptyTitle": "No plans yet",
+    "emptyDescription": "Jot down something to fix, read, or handle later.",
+    "nothingActive": "Nothing active — add a plan to get started.",
+    "doneFolder": "Done ({{count}})",
+    "deleteTitle": "Delete this plan?",
+    "deleteDescription": "This cannot be undone.",
+    "status": {
+      "PLANNED": "Planned",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done"
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "e.g. Fix the car",
+      "description": "Description ({{optional}})",
+      "dueDate": "Due date ({{optional}})",
+      "status": "Status",
+      "create": "Add plan"
     }
   },
   "bills": {

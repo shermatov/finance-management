@@ -48,6 +48,12 @@ enum BillStatus {
   PAID
 }
 
+enum PlanStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
 enum Theme {
   LIGHT
   DARK
@@ -79,6 +85,7 @@ model User {
   savingsGoals  SavingsGoal[]
   bills         Bill[]
   attachments   Attachment[]
+  plans         Plan[]
   refreshTokens RefreshToken[]
   settings      Settings?
 
@@ -281,6 +288,26 @@ model Bill {
 
   @@index([userId, dueDate])
   @@map("bills")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Plans — a general to-do/task list for future intentions that aren't tied
+// to a savings target (e.g. "fix the car", "read book X"), unlike SavingsGoal.
+// ─────────────────────────────────────────────────────────────────────────
+
+model Plan {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      PlanStatus @default(PLANNED)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId, status])
+  @@map("plans")
 }
 
 // ─────────────────────────────────────────────────────────────────────────

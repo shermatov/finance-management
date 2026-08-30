@@ -96,6 +96,15 @@ export interface Bill {
   autoComputeRate: string | null;
 }
 
+export interface Plan {
+  id: string;
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  status: "PLANNED" | "IN_PROGRESS" | "DONE";
+  createdAt: string;
+}
+
 export interface SavingsGoal {
   id: string;
   name: string;
